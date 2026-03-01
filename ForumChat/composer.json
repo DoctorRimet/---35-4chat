@@ -1,0 +1,7 @@
+{
+    "name": "admin/forum-chat",
+    "require": {
+        "vlucas/phpdotenv": "^4.3",
+        "fakerphp/faker": "^1.9"
+    }
+}
