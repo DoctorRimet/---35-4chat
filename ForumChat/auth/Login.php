@@ -12,6 +12,7 @@ $success = false;
 
 if (isset($_GET['guest'])) {
     $_SESSION['guest'] = true;
+    $_SESSION['user_id'] = 0;
     $_SESSION['username'] = 'Гость_' . rand(1000, 9999);
     header('Location: ../home/index.php');
     exit;

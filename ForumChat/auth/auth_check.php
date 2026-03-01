@@ -1,8 +1,11 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /ForumChat/auth/login.php');
+$has_session = isset($_SESSION['user_id']) || (isset($_SESSION['guest']) && $_SESSION['guest'] === true);
+
+if (!$has_session) {
+    $base = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\');
+    header('Location: ' . $base . '/auth/login.php');
     exit;
 }
 ?>
