@@ -1,4 +1,4 @@
 <?php
-$siteName = 'Мой сайт';
+$siteName = 'Сиэле';
 $version = '1.0';
 ?>
