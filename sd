@@ -1,0 +1,73 @@
+* [33mcommit 4f3451cfae9e620648df1d2a6149625221a0c11e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+[31m|[m Author: Arutemu <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Mar 2 03:46:44 2026 +0500
+[31m|[m 
+[31m|[m     ПР45: авторизация + сессии + защита страниц
+[31m|[m 
+* [33mcommit c4eba7c53e3a8cc344445bc25426e7e110d011d4[m
+[31m|[m Author: Arutemu <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Mar 2 03:30:41 2026 +0500
+[31m|[m 
+[31m|[m     ПР44: форма регистрации с Bootstrap + password_hash
+[31m|[m 
+* [33mcommit c0d4372edda41e117ff923b167657518d79d827c[m
+[31m|[m Author: Arutemu <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 23 17:44:45 2026 +0500
+[31m|[m 
+[31m|[m     Добавлена регистрация и вход
+[31m|[m 
+* [33mcommit 7c27c6880c341eb78b8fdaa59c9f28bb41bdcc16[m
+[31m|[m Author: Arutemu <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 23 16:53:19 2026 +0500
+[31m|[m 
+[31m|[m     Добавлен проект ForumIsChat с моделями, тестами и SQL
+[31m|[m 
+* [33mcommit 5ab795c6fea917ff4d5b4f5fe0affcd0ae2defec[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 16 17:30:24 2026 +0500
+[31m|[m 
+[31m|[m     Revise README for forum
+[31m|[m 
+* [33mcommit 9c185362c18691a1c35d7c3f180072d91685d4b5[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 2 16:57:47 2026 +0600
+[31m|[m 
+[31m|[m     Create phpunit.xml
+[31m|[m 
+* [33mcommit 67da88e6dd84a16d5ae5702aeac6fcde565842c3[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 2 16:56:38 2026 +0600
+[31m|[m 
+[31m|[m     Create ExampleTest.php
+[31m|[m 
+* [33mcommit 96a787bfa35813086a074de69a0fb9a348f516da[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 2 16:55:31 2026 +0600
+[31m|[m 
+[31m|[m     Create json
+[31m|[m 
+* [33mcommit 737862e8333055b9fff60c9023f4f610a32e9e35[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 2 16:55:01 2026 +0600
+[31m|[m 
+[31m|[m     Create PHPUUnit
+[31m|[m 
+* [33mcommit df0f93d8d7a13ef4bc66ab2a566c87fb8f083be3[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 2 16:52:57 2026 +0600
+[31m|[m 
+[31m|[m     Add PHP CI workflow for testing and syntax checks
+[31m|[m 
+* [33mcommit 4879689ff594f71bcc644b036d16360ac6e29585[m
+[31m|[m Author: DoctorRimet <doctorrimet@gmail.com>
+[31m|[m Date:   Mon Feb 2 16:46:26 2026 +0600
+[31m|[m 
+[31m|[m     Revise README for forum
+[31m|[m     
+[31m|[m     Updated project title and added technology stack.
+[31m|[m 
+* [33mcommit 671cd3b91cbbc8684a85b4856263e5e238b71567[m
+  Author: DoctorRimet <doctorrimet@gmail.com>
+  Date:   Mon Feb 2 13:58:27 2026 +0500
+  
+      Initial commit
