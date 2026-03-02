@@ -324,7 +324,7 @@ body { background-color: #f0f2f5; }
             <?php if (!$is_guest): ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="card-body">
-                    <div class="section-title mb-3">Быстрые действия</div>
+                    <div class="section-title mb-3">Быстрые действия с репозиторием</div>
                     <div class="d-grid gap-2">
                         <a href="create.php" class="btn btn-create btn-primary btn-sm">
                             <i class="bi bi-plus-lg me-1"></i>Создать тему
