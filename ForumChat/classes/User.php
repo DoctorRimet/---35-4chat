@@ -149,9 +149,11 @@ class User {
         return (int)$stmt->fetchColumn();
     }
 
-    public function createSession($user_id) {
+    public function createSession($user_id, $remember = false) {
         $token = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', strtotime('+30 days'));
+        $expires = $remember
+            ? date('Y-m-d H:i:s', strtotime('+30 days'))
+            : date('Y-m-d H:i:s', strtotime('+1 day'));
         $stmt = $this->conn->prepare(
             "INSERT INTO sessions (user_id, token, expires_at) VALUES (:user_id, :token, :expires_at)"
         );

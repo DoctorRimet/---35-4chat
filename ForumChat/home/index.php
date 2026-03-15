@@ -28,8 +28,8 @@ foreach ($all_posts as $p) {
     $post_counts[$p['topic_id']] = ($post_counts[$p['topic_id']] ?? 0) + 1;
 }
 
-$username = htmlspecialchars($_SESSION['username']);
-$is_guest = isset($_SESSION['guest']) && $_SESSION['guest'] === true;
+$username = htmlspecialchars($_SESSION['username'] ?? 'Гость');
+$is_guest = !isset($_SESSION['user_id']) || $_SESSION['user_id'] == 0;
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -41,91 +41,22 @@ $is_guest = isset($_SESSION['guest']) && $_SESSION['guest'] === true;
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
 body { background-color: #f0f2f5; }
-.navbar-brand-icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
+.navbar-brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
 .navbar { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
-.stat-card {
-    border: none;
-    border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    transition: transform .2s;
-}
+.stat-card { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); transition: transform .2s; }
 .stat-card:hover { transform: translateY(-2px); }
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-.topic-card {
-    border: none;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    transition: box-shadow .2s, transform .2s;
-    cursor: pointer;
-}
-.topic-card:hover {
-    box-shadow: 0 6px 20px rgba(99,102,241,.15);
-    transform: translateY(-2px);
-}
-.topic-card .card-title a {
-    color: #1e1e2e;
-    text-decoration: none;
-    font-weight: 600;
-}
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.topic-card { border: none; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05); transition: box-shadow .2s, transform .2s; cursor: pointer; }
+.topic-card:hover { box-shadow: 0 6px 20px rgba(99,102,241,.15); transform: translateY(-2px); }
+.topic-card .card-title a { color: #1e1e2e; text-decoration: none; font-weight: 600; }
 .topic-card .card-title a:hover { color: #6366f1; }
-.badge-status {
-    font-size: .7rem;
-    padding: .3em .65em;
-    border-radius: 6px;
-}
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: .75rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-.btn-create {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: opacity .2s, box-shadow .2s;
-}
-.btn-create:hover {
-    opacity: .9;
-    box-shadow: 0 6px 20px rgba(99,102,241,.35);
-}
-.section-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e1e2e;
-    border-left: 3px solid #6366f1;
-    padding-left: .6rem;
-}
-.empty-state {
-    padding: 3rem 1rem;
-    text-align: center;
-    color: #adb5bd;
-}
+.badge-status { font-size: .7rem; padding: .3em .65em; border-radius: 6px; }
+.avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+.btn-create { background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 10px; font-weight: 600; transition: opacity .2s, box-shadow .2s; }
+.btn-create:hover { opacity: .9; box-shadow: 0 6px 20px rgba(99,102,241,.35); }
+.section-title { font-size: 1.1rem; font-weight: 700; color: #1e1e2e; border-left: 3px solid #6366f1; padding-left: .6rem; }
+.empty-state { padding: 3rem 1rem; text-align: center; color: #adb5bd; }
+.search-bar { background: #fff; border-bottom: 1px solid #e9ecef; padding: .5rem 0; }
 </style>
 </head>
 <body>
@@ -176,58 +107,57 @@ body { background-color: #f0f2f5; }
     </div>
 </nav>
 
+<div class="search-bar">
+    <div class="container">
+        <form action="search.php" method="GET" class="d-flex gap-2">
+            <div class="input-group" style="max-width:480px">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-secondary"></i>
+                </span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0"
+                    placeholder="Поиск по темам..."
+                    value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
+            </div>
+            <button type="submit" class="btn btn-sm px-3 rounded-3 fw-semibold text-white"
+                style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none">
+                Найти
+            </button>
+        </form>
+    </div>
+</div>
+
 <div class="container py-4">
 
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-primary bg-opacity-10">
-                        <i class="bi bi-chat-dots text-primary"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1"><?= $total_topics ?></div>
-                        <div class="text-muted small">Тем</div>
-                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-chat-dots text-primary"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1"><?= $total_topics ?></div><div class="text-muted small">Тем</div></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-success bg-opacity-10">
-                        <i class="bi bi-chat-text text-success"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1"><?= $total_posts ?></div>
-                        <div class="text-muted small">Постов</div>
-                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-chat-text text-success"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1"><?= $total_posts ?></div><div class="text-muted small">Постов</div></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-warning bg-opacity-10">
-                        <i class="bi bi-people text-warning"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1"><?= $total_users ?></div>
-                        <div class="text-muted small">Участников</div>
-                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-people text-warning"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1"><?= $total_users ?></div><div class="text-muted small">Участников</div></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-info bg-opacity-10">
-                        <i class="bi bi-circle-fill text-info" style="font-size:10px"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1 text-success">●</div>
-                        <div class="text-muted small">Онлайн</div>
-                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10"><i class="bi bi-circle-fill text-info" style="font-size:10px"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1 text-success">●</div><div class="text-muted small">Онлайн</div></div>
                 </div>
             </div>
         </div>
