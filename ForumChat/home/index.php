@@ -30,6 +30,7 @@ foreach ($all_posts as $p) {
 
 $username = htmlspecialchars($_SESSION['username'] ?? 'Гость');
 $is_guest = !isset($_SESSION['user_id']) || $_SESSION['user_id'] == 0;
+$userRole = $_SESSION['user_role'] ?? 'user';
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -96,8 +97,18 @@ body { background-color: #f0f2f5; }
                     <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                     </a>
-                <?php else: ?>
-                    <span class="badge bg-success bg-opacity-10 text-success">Участник</span>
+                <?php else:
+                    $roleLabel = 'Участник';
+                    $badgeClass = 'bg-success bg-opacity-10 text-success';
+                    if ($userRole === 'moderator') {
+                        $roleLabel = 'Модератор';
+                        $badgeClass = 'bg-warning bg-opacity-10 text-warning';
+                    } elseif ($userRole === 'admin') {
+                        $roleLabel = 'Админ';
+                        $badgeClass = 'bg-primary bg-opacity-10 text-primary';
+                    }
+                ?>
+                    <span class="badge <?= $badgeClass ?>"><?= $roleLabel ?></span>
                     <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
                     </a>

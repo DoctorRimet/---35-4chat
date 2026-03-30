@@ -28,61 +28,125 @@ if (isset($_GET['logout'])) {
     exit;
 }
 
-if (isset($_COOKIE['auth_token']) && !isset($_SESSION['user_id'])) {
-    $sessionData = $user->validateSession($_COOKIE['auth_token']);
-    if ($sessionData && $sessionData['status'] === 'active') {
-        $_SESSION['user_id'] = $sessionData['user_id'];
-        $_SESSION['username'] = $sessionData['username'];
-        header('Location: ../home/index.php');
-        exit;
-    } else {
-        setcookie('auth_token', '', time() - 3600, '/');
-    }
+$pending2faUserId = $_SESSION['pending_2fa_user_id'] ?? null;
+$pending2faUsername = $_SESSION['pending_2fa_username'] ?? '';
+$pending2faRemember = $_SESSION['pending_2fa_remember'] ?? false;
+$pending2faExpires = $_SESSION['pending_2fa_expires'] ?? 0;
+$twoFactorStep = false;
+
+if ($pending2faUserId && $pending2faExpires && time() > $pending2faExpires) {
+    unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_username'], $_SESSION['pending_2fa_remember'], $_SESSION['pending_2fa_expires']);
+    $pending2faUserId = null;
+    $errors[] = 'Время ввода кода 2FA истекло. Повторите вход.';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email    = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $remember = isset($_POST['remember']) && $_POST['remember'] === '1';
+    if ($pending2faUserId && isset($_POST['otp'])) {
+        $otp = trim($_POST['otp'] ?? '');
+        $pendingUser = $user->getById($pending2faUserId);
 
-    if (empty($email) || empty($password)) {
-        $errors[] = 'Введите email и пароль';
-    } else {
-        $userData = $user->getByEmail($email);
-
-        if (!$userData) {
-            $errors[] = 'Неверный email или пароль';
-        } elseif ($user->isLocked($userData)) {
-            $mins = $user->getLockRemainingMinutes($userData);
-            $errors[] = "Аккаунт заблокирован. Попробуйте через {$mins} мин.";
-        } elseif ($userData['status'] === 'blocked') {
-            $errors[] = 'Ваш аккаунт заблокирован администратором';
-        } elseif (!password_verify($password, $userData['password_hash'])) {
-            $user->incrementFailedAttempts($userData['id']);
-            $attemptsLeft = User::MAX_FAILED_ATTEMPTS - ($userData['failed_attempts'] + 1);
-            if ($attemptsLeft <= 0) {
-                $errors[] = 'Аккаунт заблокирован на ' . User::LOCK_DURATION_MINUTES . ' минут';
-            } else {
-                $errors[] = "Неверный пароль. Осталось попыток: {$attemptsLeft}";
-            }
+        if (empty($otp)) {
+            $errors[] = 'Введите код двухфакторной аутентификации';
+        } elseif (!$pendingUser || empty($pendingUser['two_factor_enabled']) || empty($pendingUser['two_factor_secret'])) {
+            $errors[] = 'Не удалось проверить 2FA. Повторите вход.';
+            unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_username'], $_SESSION['pending_2fa_remember'], $_SESSION['pending_2fa_expires']);
+        } elseif (!$user->verifyTwoFactorCode($pendingUser['two_factor_secret'], $otp)) {
+            $errors[] = 'Неверный код двухфакторной аутентификации';
         } else {
-            if ($user->countActiveSessions($userData['id']) >= User::MAX_SESSIONS) {
+            if ($user->countActiveSessions($pendingUser['id']) >= User::MAX_SESSIONS) {
                 $errors[] = 'Превышено максимальное количество активных сессий';
             } else {
-                $user->resetFailedAttempts($userData['id']);
-                $token = $user->createSession($userData['id'], $remember);
+                $user->resetFailedAttempts($pendingUser['id']);
+                $token = $user->createSession($pendingUser['id'], $pending2faRemember);
 
-                if ($remember) {
+                if ($pending2faRemember) {
                     setcookie('auth_token', $token, time() + 30 * 24 * 3600, '/', '', false, true);
                 } else {
                     setcookie('auth_token', $token, 0, '/', '', false, true);
                 }
 
-                $_SESSION['user_id'] = $userData['id'];
-                $_SESSION['username'] = $userData['username'];
+                unset($_SESSION['guest']);
+                $_SESSION['user_id'] = $pendingUser['id'];
+                $_SESSION['username'] = $pendingUser['username'];
+                $_SESSION['user_role'] = $user->getPrimaryRole($pendingUser['id']);
+                unset($_SESSION['pending_2fa_user_id'], $_SESSION['pending_2fa_username'], $_SESSION['pending_2fa_remember'], $_SESSION['pending_2fa_expires']);
                 $success = true;
             }
         }
+    } else {
+        $email    = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $remember = isset($_POST['remember']) && $_POST['remember'] === '1';
+
+        if (empty($email) || empty($password)) {
+            $errors[] = 'Введите email и пароль';
+        } else {
+            $userData = $user->getByEmail($email);
+
+            if (!$userData) {
+                $errors[] = 'Неверный email или пароль';
+            } elseif ($user->isLocked($userData)) {
+                $mins = $user->getLockRemainingMinutes($userData);
+                $errors[] = "Аккаунт заблокирован. Попробуйте через {$mins} мин.";
+            } elseif ($userData['status'] === 'blocked') {
+                $errors[] = 'Ваш аккаунт заблокирован администратором';
+            } elseif (!password_verify($password, $userData['password_hash'])) {
+                $failedAttempts = $user->incrementFailedAttempts($userData['id']);
+                $attemptsLeft = $failedAttempts === false
+                    ? User::MAX_FAILED_ATTEMPTS - ($userData['failed_attempts'] + 1)
+                    : User::MAX_FAILED_ATTEMPTS - $failedAttempts;
+                if ($attemptsLeft <= 0) {
+                    $errors[] = 'Аккаунт заблокирован на ' . User::LOCK_DURATION_MINUTES . ' минут';
+                } else {
+                    $errors[] = "Неверный пароль. Осталось попыток: {$attemptsLeft}";
+                }
+            } elseif (!empty($userData['two_factor_enabled'])) {
+                $user->resetFailedAttempts($userData['id']);
+                $_SESSION['pending_2fa_user_id'] = $userData['id'];
+                $_SESSION['pending_2fa_username'] = $userData['username'];
+                $_SESSION['pending_2fa_remember'] = $remember;
+                $_SESSION['pending_2fa_expires'] = time() + 300;
+                $twoFactorStep = true;
+                $pending2faUsername = $userData['username'];
+            } else {
+                if ($user->countActiveSessions($userData['id']) >= User::MAX_SESSIONS) {
+                    $errors[] = 'Превышено максимальное количество активных сессий';
+                } else {
+                    $user->resetFailedAttempts($userData['id']);
+                    $token = $user->createSession($userData['id'], $remember);
+
+                    if ($remember) {
+                        setcookie('auth_token', $token, time() + 30 * 24 * 3600, '/', '', false, true);
+                    } else {
+                        setcookie('auth_token', $token, 0, '/', '', false, true);
+                    }
+
+                    unset($_SESSION['guest']);
+                    $_SESSION['user_id'] = $userData['id'];
+                    $_SESSION['username'] = $userData['username'];
+                    $_SESSION['user_role'] = $user->getPrimaryRole($userData['id']);
+                    $success = true;
+                }
+            }
+        }
+    }
+}
+
+if (!$twoFactorStep && isset($_SESSION['pending_2fa_user_id'])) {
+    $twoFactorStep = true;
+}
+
+if (isset($_COOKIE['auth_token']) && !isset($_SESSION['user_id'])) {
+    $sessionData = $user->validateSession($_COOKIE['auth_token']);
+    if ($sessionData && $sessionData['status'] === 'active') {
+        unset($_SESSION['guest']);
+        $_SESSION['user_id'] = $sessionData['user_id'];
+        $_SESSION['username'] = $sessionData['username'];
+        $_SESSION['user_role'] = $user->getPrimaryRole($sessionData['user_id']);
+        header('Location: ../home/index.php');
+        exit;
+    } else {
+        setcookie('auth_token', '', time() - 3600, '/');
     }
 }
 ?>
@@ -130,8 +194,8 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                     <a href="../home/index.php" class="btn btn-primary-custom btn-primary w-100">Перейти на форум →</a>
                 </div>
                 <?php else: ?>
-                <h4 class="fw-bold mb-1">Добро пожаловать</h4>
-                <p class="text-muted small mb-4">Войдите в свой аккаунт</p>
+                <h4 class="fw-bold mb-1"><?= $twoFactorStep ? 'Введите код 2FA' : 'Добро пожаловать' ?></h4>
+                <p class="text-muted small mb-4"><?= $twoFactorStep ? 'Введите код, сгенерированный в приложении, чтобы завершить вход.' : 'Войдите в свой аккаунт' ?></p>
                 <?php if (isset($_GET['loggedout'])): ?>
                 <div class="alert alert-info d-flex align-items-center gap-2 py-2">
                     <i class="bi bi-info-circle"></i><span>Вы вышли из аккаунта</span>
@@ -149,10 +213,20 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                         <div class="input-group">
                             <span class="input-group-text border-end-0 bg-white"><i class="bi bi-envelope text-secondary"></i></span>
                             <input type="email" id="email" name="email" class="form-control border-start-0 ps-0"
-                                placeholder="you@example.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
-                                autocomplete="email" required>
+                                placeholder="you@example.com" value="<?= htmlspecialchars($_POST['email'] ?? $pending2faUsername) ?>"
+                                autocomplete="email" <?= $twoFactorStep ? 'readonly' : 'required' ?>>
                         </div>
                     </div>
+                    <?php if ($twoFactorStep): ?>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-uppercase text-secondary" for="otp">Код 2FA</label>
+                        <div class="input-group">
+                            <span class="input-group-text border-end-0 bg-white"><i class="bi bi-shield-lock text-secondary"></i></span>
+                            <input type="text" id="otp" name="otp" class="form-control border-start-0 border-end-0 ps-0"
+                                placeholder="Введите код из приложения" autocomplete="one-time-code" required>
+                        </div>
+                    </div>
+                    <?php else: ?>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-uppercase text-secondary" for="password">Пароль</label>
                         <div class="input-group">
@@ -172,7 +246,8 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                         </div>
                         <a href="#" class="small text-decoration-none" style="color:#6366f1">Забыли пароль?</a>
                     </div>
-                    <button type="submit" class="btn btn-primary-custom btn-primary w-100">Войти</button>
+                    <?php endif; ?>
+                    <button type="submit" class="btn btn-primary-custom btn-primary w-100"><?= $twoFactorStep ? 'Подтвердить 2FA' : 'Войти' ?></button>
                 </form>
                 <div class="divider my-3">или</div>
                 <a href="?guest=1" class="btn btn-outline-secondary w-100 rounded-3">

@@ -1,111 +1,22 @@
-Итак новый день новые задания
-
-Основные требования Bootstrap
-
-Каждое задние новая ветка репозитория 
-
-Ну репозиторием я сам займусь 
-
-Вот с этим мы будем заниматься 
-
-Вход и выход пользователя
-
-BackEnd
-
-Вход в систему по email и паролю или без аккаунта Создание пользовательской сессии с remember me Выход из системы и завершение сессии
-
-Но я заранее тебе скину полную задачу чтобы ты не делал конфликты в будущем однако ты должен выполнить только это:Вход и выход пользователя
-
-BackEnd
-
-Вход в систему по email и паролю или без аккаунта Создание пользовательской сессии с remember me Выход из системы и завершение сессии
-
-
-
-Вот полная задача
-
-СИСТЕМА АВТОРИЗАЦИИ И ИДЕНТИФИКАЦИИ ПОЛЬЗОВАТЕЛЕЙ
-
-Краткое описание: User может зарегистрироваться, войти в систему и управлять своим профилем
-
-Функциональные требования:
-
-* Регистрация новых пользователей (email, пароль, никнейм)
-
-* Вход в систему (email/пароль или анонимно)
-
-* Восстановление пароля (по email)
-
-* Выход из системы
-
-* Профиль пользователя (никнейм, аватар, дата присоединения)
-
-* Редактирование профиля (пароль, email, аватар)
-
-* Система ролей (user, moderator, admin)
-
-* История активности пользователя (список его постов и комментариев)
-
-Нефункциональные требования:
-
-* Пароли хранятся в хешированном виде (bcrypt, argon2)
-
-* Сессия длится 30 дней (remember me) или до выхода
-
-* Email-подтверждение при регистрации
-
-* Защита от bruteforce (максимум 5 попыток входа за 15 минут)
-
-* Поддержка 2FA (двухфакторная аутентификация) опционально
-
-Ограничения:
-
-* Минимальная длина пароля: 8 символов
-
-* Максимальная длина никнейма: 30 символов
-
-* Уникальность email и никнейма
-
-* Максимум 1000 активных сессий на одного пользователя одновременно
-
-Критерии приёмки:
-
-* user заполнил форму регистрации → Then: отправлена ссылка подтверждения на email
-
-* user нажал подтвердить email → Then: аккаунт активирован, может войти
-
-* user ввел неправильный пароль 5 раз → Then: аккаунт заблокирован на 15 минут
-
-* user забыл пароль → Then: ссылка восстановления отправлена на email
-
-* admin удалил аккаунт → Then: все посты пользователя помечены как "Удаленный пользователь"
-
-
-
-
-
-также хотя ты и не попросишь но я скину код
+папка проекта 
+ForumChat
+в ней
+папка 
+auth
+с содержимым
 auth_check.php
-
 <?php
-
 session_start();
 
 $has_session = isset($_SESSION['user_id']) || (isset($_SESSION['guest']) && $_SESSION['guest'] === true);
 
 if (!$has_session) {
-
     $base = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\');
-
     header('Location: ' . $base . '/auth/login.php');
-
     exit;
-
 }
-
 ?>
-
-login 
+login.php
 <?php
 session_start();
 require_once __DIR__ . '/../config/database.php';
@@ -126,17 +37,32 @@ if (isset($_GET['guest'])) {
     exit;
 }
 
-if (isset($_GET['logout']) && isset($_COOKIE['auth_token'])) {
-    $user->deleteSession($_COOKIE['auth_token']);
-    setcookie('auth_token', '', time() - 3600, '/');
+if (isset($_GET['logout'])) {
+    if (isset($_COOKIE['auth_token'])) {
+        $user->deleteSession($_COOKIE['auth_token']);
+        setcookie('auth_token', '', time() - 3600, '/');
+    }
     session_destroy();
     header('Location: login.php?loggedout=1');
     exit;
 }
 
+if (isset($_COOKIE['auth_token']) && !isset($_SESSION['user_id'])) {
+    $sessionData = $user->validateSession($_COOKIE['auth_token']);
+    if ($sessionData && $sessionData['status'] === 'active') {
+        $_SESSION['user_id'] = $sessionData['user_id'];
+        $_SESSION['username'] = $sessionData['username'];
+        header('Location: ../home/index.php');
+        exit;
+    } else {
+        setcookie('auth_token', '', time() - 3600, '/');
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
+    $remember = isset($_POST['remember']) && $_POST['remember'] === '1';
 
     if (empty($email) || empty($password)) {
         $errors[] = 'Введите email и пароль';
@@ -163,8 +89,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = 'Превышено максимальное количество активных сессий';
             } else {
                 $user->resetFailedAttempts($userData['id']);
-                $token = $user->createSession($userData['id']);
-                setcookie('auth_token', $token, time() + 30 * 24 * 3600, '/', '', false, true);
+                $token = $user->createSession($userData['id'], $remember);
+
+                if ($remember) {
+                    setcookie('auth_token', $token, time() + 30 * 24 * 3600, '/', '', false, true);
+                } else {
+                    setcookie('auth_token', $token, 0, '/', '', false, true);
+                }
+
                 $_SESSION['user_id'] = $userData['id'];
                 $_SESSION['username'] = $userData['username'];
                 $success = true;
@@ -182,209 +114,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
-body {
-    background-color: #f0f2f5;
-    min-height: 100vh;
-}
-.auth-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-}
-.auth-card {
-    width: 100%;
-    max-width: 440px;
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 4px 24px rgba(0,0,0,.08);
-}
-.brand-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #fff;
-}
-.brand-name {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1e1e2e;
-    letter-spacing: -.5px;
-}
+body { background-color: #f0f2f5; min-height: 100vh; }
+.auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; }
+.auth-card { width: 100%; max-width: 440px; border-radius: 16px; border: none; box-shadow: 0 4px 24px rgba(0,0,0,.08); }
+.brand-icon { width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fff; }
+.brand-name { font-size: 1.4rem; font-weight: 700; color: #1e1e2e; letter-spacing: -.5px; }
 .brand-name span { color: #6366f1; }
-.form-control {
-    border-radius: 10px;
-    padding: .65rem 1rem;
-    border-color: #dee2e6;
-    font-size: .95rem;
-}
-.form-control:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 .2rem rgba(99,102,241,.15);
-}
+.form-control { border-radius: 10px; padding: .65rem 1rem; border-color: #dee2e6; font-size: .95rem; }
+.form-control:focus { border-color: #6366f1; box-shadow: 0 0 0 .2rem rgba(99,102,241,.15); }
 .input-group .form-control { border-radius: 10px 0 0 10px; }
-.input-group .btn-outline-secondary {
-    border-color: #dee2e6;
-    border-radius: 0 10px 10px 0;
-    color: #6c757d;
-}
+.input-group .btn-outline-secondary { border-color: #dee2e6; border-radius: 0 10px 10px 0; color: #6c757d; }
 .input-group .btn-outline-secondary:hover { background: #f8f9fa; }
-.btn-primary-custom {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border: none;
-    border-radius: 10px;
-    padding: .7rem;
-    font-weight: 600;
-    font-size: .95rem;
-    transition: opacity .2s, box-shadow .2s;
-}
-.btn-primary-custom:hover {
-    opacity: .9;
-    box-shadow: 0 6px 20px rgba(99,102,241,.35);
-}
-.divider {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    color: #adb5bd;
-    font-size: .85rem;
-}
-.divider::before, .divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: #e9ecef;
-}
+.btn-primary-custom { background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 10px; padding: .7rem; font-weight: 600; font-size: .95rem; transition: opacity .2s, box-shadow .2s; }
+.btn-primary-custom:hover { opacity: .9; box-shadow: 0 6px 20px rgba(99,102,241,.35); }
+.divider { display: flex; align-items: center; gap: .75rem; color: #adb5bd; font-size: .85rem; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e9ecef; }
+.form-check-input:checked { background-color: #6366f1; border-color: #6366f1; }
 </style>
 </head>
 <body>
 <div class="auth-wrapper">
     <div class="w-100" style="max-width:440px">
-
         <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
             <div class="brand-icon">💬</div>
             <div class="brand-name">Forum<span>Chat</span></div>
         </div>
-
         <div class="card auth-card">
             <div class="card-body p-4">
-
                 <?php if ($success): ?>
                 <div class="text-center py-3">
-                    <div class="mb-3">
-                        <span class="display-4 text-success">✓</span>
-                    </div>
+                    <div class="mb-3"><span class="display-4 text-success">✓</span></div>
                     <h4 class="fw-bold mb-2">Добро пожаловать!</h4>
                     <p class="text-muted mb-4">Вы вошли как <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
                     <a href="../home/index.php" class="btn btn-primary-custom btn-primary w-100">Перейти на форум →</a>
                 </div>
-
                 <?php else: ?>
-
                 <h4 class="fw-bold mb-1">Добро пожаловать</h4>
                 <p class="text-muted small mb-4">Войдите в свой аккаунт</p>
-
                 <?php if (isset($_GET['loggedout'])): ?>
                 <div class="alert alert-info d-flex align-items-center gap-2 py-2">
-                    <i class="bi bi-info-circle"></i>
-                    <span>Вы вышли из аккаунта</span>
+                    <i class="bi bi-info-circle"></i><span>Вы вышли из аккаунта</span>
                 </div>
                 <?php endif; ?>
-
                 <?php if (!empty($errors)): ?>
                 <div class="alert alert-danger d-flex align-items-start gap-2 py-2">
                     <i class="bi bi-exclamation-triangle mt-1"></i>
-                    <div>
-                        <?php foreach ($errors as $err): ?>
-                        <div><?= htmlspecialchars($err) ?></div>
-                        <?php endforeach; ?>
-                    </div>
+                    <div><?php foreach ($errors as $err): ?><div><?= htmlspecialchars($err) ?></div><?php endforeach; ?></div>
                 </div>
                 <?php endif; ?>
-
-                <form method="POST" novalidate>
+                <form action="login.php" method="POST" novalidate>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-uppercase text-secondary" for="email">Email</label>
                         <div class="input-group">
-                            <span class="input-group-text border-end-0 bg-white">
-                                <i class="bi bi-envelope text-secondary"></i>
-                            </span>
+                            <span class="input-group-text border-end-0 bg-white"><i class="bi bi-envelope text-secondary"></i></span>
                             <input type="email" id="email" name="email" class="form-control border-start-0 ps-0"
-                                placeholder="you@example.com"
-                                value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
+                                placeholder="you@example.com" value="<?= htmlspecialchars($_POST['email'] ?? '') ?>"
                                 autocomplete="email" required>
                         </div>
                     </div>
-
-                    <div class="mb-1">
+                    <div class="mb-3">
                         <label class="form-label fw-semibold small text-uppercase text-secondary" for="password">Пароль</label>
                         <div class="input-group">
-                            <span class="input-group-text border-end-0 bg-white">
-                                <i class="bi bi-lock text-secondary"></i>
-                            </span>
+                            <span class="input-group-text border-end-0 bg-white"><i class="bi bi-lock text-secondary"></i></span>
                             <input type="password" id="password" name="password"
                                 class="form-control border-start-0 border-end-0 ps-0"
-                                placeholder="Ваш пароль"
-                                autocomplete="current-password" required>
-                            <button type="button" class="btn btn-outline-secondary border-start-0"
-                                onclick="togglePass('password',this)">
+                                placeholder="Ваш пароль" autocomplete="current-password" required>
+                            <button type="button" class="btn btn-outline-secondary border-start-0" onclick="togglePass('password',this)">
                                 <i class="bi bi-eye"></i>
                             </button>
                         </div>
                     </div>
-                    <div class="text-end mb-3">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
+                            <label class="form-check-label small text-muted" for="remember">Запомнить меня на 30 дней</label>
+                        </div>
                         <a href="#" class="small text-decoration-none" style="color:#6366f1">Забыли пароль?</a>
                     </div>
-
                     <button type="submit" class="btn btn-primary-custom btn-primary w-100">Войти</button>
                 </form>
-
                 <div class="divider my-3">или</div>
-
                 <a href="?guest=1" class="btn btn-outline-secondary w-100 rounded-3">
                     <i class="bi bi-person me-1"></i> Войти анонимно
                 </a>
-
                 <p class="text-center text-muted small mt-4 mb-0">
                     Нет аккаунта? <a href="register.php" class="text-decoration-none fw-semibold" style="color:#6366f1">Зарегистрироваться</a>
                 </p>
-
                 <?php endif; ?>
             </div>
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 function togglePass(id, btn) {
     const el = document.getElementById(id);
     const icon = btn.querySelector('i');
-    if (el.type === 'password') {
-        el.type = 'text';
-        icon.className = 'bi bi-eye-slash';
-    } else {
-        el.type = 'password';
-        icon.className = 'bi bi-eye';
-    }
+    if (el.type === 'password') { el.type = 'text'; icon.className = 'bi bi-eye-slash'; }
+    else { el.type = 'password'; icon.className = 'bi bi-eye'; }
 }
 </script>
 </body>
 </html>
-logout
+
+logout.php
 <?php
 session_start();
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../classes/User.php';
+
+if (isset($_COOKIE['auth_token'])) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    $user = new User($conn);
+    $user->deleteSession($_COOKIE['auth_token']);
+    setcookie('auth_token', '', time() - 3600, '/');
+}
+
 session_destroy();
-header('Location: login.php');
+header('Location: login.php?loggedout=1');
 exit;
 ?>
-register
+
+register.php
 <?php
 session_start();
 require_once __DIR__ . '/../config/database.php';
@@ -700,10 +552,9 @@ function checkStrength(val) {
 </script>
 </body>
 </html>
-все файлы выше находятся в папке auth
-папка classes
-Category
 
+папка classes
+с содержимым Category.php
 <?php
 class Category {
 
@@ -764,7 +615,7 @@ class Category {
     }
 }
 ?>
-Notification
+Notification.php
 <?php
 class Notification {
 
@@ -836,7 +687,7 @@ class Notification {
     }
 }
 ?>
-Post
+Post.php
 <?php
 class Post {
 
@@ -943,7 +794,7 @@ class Post {
     }
 }
 ?>
-Topic
+Topic.php
 <?php
 class Topic {
 
@@ -1014,7 +865,7 @@ class Topic {
     }
 }
 ?>
-User
+User.php
 <?php
 class User {
     private $conn;
@@ -1166,9 +1017,11 @@ class User {
         return (int)$stmt->fetchColumn();
     }
 
-    public function createSession($user_id) {
+    public function createSession($user_id, $remember = false) {
         $token = bin2hex(random_bytes(32));
-        $expires = date('Y-m-d H:i:s', strtotime('+30 days'));
+        $expires = $remember
+            ? date('Y-m-d H:i:s', strtotime('+30 days'))
+            : date('Y-m-d H:i:s', strtotime('+1 day'));
         $stmt = $this->conn->prepare(
             "INSERT INTO sessions (user_id, token, expires_at) VALUES (:user_id, :token, :expires_at)"
         );
@@ -1199,40 +1052,9 @@ class User {
     }
 }
 ?>
-папка config
-database
-<?php
-require_once __DIR__ . '/../vendor/autoload.php';
 
-class Database {
-    private $pdo;
-
-    public function __construct() {
-        $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
-        $dotenv->safeLoad();
-
-        $host = $_ENV['DB_HOST'] ?? 'localhost';
-        $db   = $_ENV['DB_NAME'];
-        $user = $_ENV['DB_USER'] ?? 'root';
-        $pass = $_ENV['DB_PASS'] ?? '';
-        $dsn = "mysql:host=$host;dbname=$db;charset=utf8mb4";
-
-        try {
-            $this->pdo = new PDO($dsn, $user, $pass, [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-            ]);
-        } catch (\PDOException $e) {
-            die("Ошибка БД: " . $e->getMessage());
-        }
-    }
-
-    public function getConnection() {
-        return $this->pdo;
-    }
-}
 папка home
-index
+с index.php
 <?php
 require_once __DIR__ . '/../auth/auth_check.php';
 require_once __DIR__ . '/../config/database.php';
@@ -1263,8 +1085,8 @@ foreach ($all_posts as $p) {
     $post_counts[$p['topic_id']] = ($post_counts[$p['topic_id']] ?? 0) + 1;
 }
 
-$username = htmlspecialchars($_SESSION['username']);
-$is_guest = isset($_SESSION['guest']) && $_SESSION['guest'] === true;
+$username = htmlspecialchars($_SESSION['username'] ?? 'Гость');
+$is_guest = !isset($_SESSION['user_id']) || $_SESSION['user_id'] == 0;
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -1276,91 +1098,22 @@ $is_guest = isset($_SESSION['guest']) && $_SESSION['guest'] === true;
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 <style>
 body { background-color: #f0f2f5; }
-.navbar-brand-icon {
-    width: 36px;
-    height: 36px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-}
+.navbar-brand-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
 .navbar { box-shadow: 0 1px 8px rgba(0,0,0,.06); }
-.stat-card {
-    border: none;
-    border-radius: 14px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.06);
-    transition: transform .2s;
-}
+.stat-card { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.06); transition: transform .2s; }
 .stat-card:hover { transform: translateY(-2px); }
-.stat-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-}
-.topic-card {
-    border: none;
-    border-radius: 14px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    transition: box-shadow .2s, transform .2s;
-    cursor: pointer;
-}
-.topic-card:hover {
-    box-shadow: 0 6px 20px rgba(99,102,241,.15);
-    transform: translateY(-2px);
-}
-.topic-card .card-title a {
-    color: #1e1e2e;
-    text-decoration: none;
-    font-weight: 600;
-}
+.stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.topic-card { border: none; border-radius: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.05); transition: box-shadow .2s, transform .2s; cursor: pointer; }
+.topic-card:hover { box-shadow: 0 6px 20px rgba(99,102,241,.15); transform: translateY(-2px); }
+.topic-card .card-title a { color: #1e1e2e; text-decoration: none; font-weight: 600; }
 .topic-card .card-title a:hover { color: #6366f1; }
-.badge-status {
-    font-size: .7rem;
-    padding: .3em .65em;
-    border-radius: 6px;
-}
-.avatar-sm {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: .75rem;
-    font-weight: 700;
-    flex-shrink: 0;
-}
-.btn-create {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: opacity .2s, box-shadow .2s;
-}
-.btn-create:hover {
-    opacity: .9;
-    box-shadow: 0 6px 20px rgba(99,102,241,.35);
-}
-.section-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #1e1e2e;
-    border-left: 3px solid #6366f1;
-    padding-left: .6rem;
-}
-.empty-state {
-    padding: 3rem 1rem;
-    text-align: center;
-    color: #adb5bd;
-}
+.badge-status { font-size: .7rem; padding: .3em .65em; border-radius: 6px; }
+.avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #8b5cf6); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: .75rem; font-weight: 700; flex-shrink: 0; }
+.btn-create { background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; border-radius: 10px; font-weight: 600; transition: opacity .2s, box-shadow .2s; }
+.btn-create:hover { opacity: .9; box-shadow: 0 6px 20px rgba(99,102,241,.35); }
+.section-title { font-size: 1.1rem; font-weight: 700; color: #1e1e2e; border-left: 3px solid #6366f1; padding-left: .6rem; }
+.empty-state { padding: 3rem 1rem; text-align: center; color: #adb5bd; }
+.search-bar { background: #fff; border-bottom: 1px solid #e9ecef; padding: .5rem 0; }
 </style>
 </head>
 <body>
@@ -1411,58 +1164,57 @@ body { background-color: #f0f2f5; }
     </div>
 </nav>
 
+<div class="search-bar">
+    <div class="container">
+        <form action="search.php" method="GET" class="d-flex gap-2">
+            <div class="input-group" style="max-width:480px">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-secondary"></i>
+                </span>
+                <input type="text" name="q" class="form-control border-start-0 ps-0"
+                    placeholder="Поиск по темам..."
+                    value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
+            </div>
+            <button type="submit" class="btn btn-sm px-3 rounded-3 fw-semibold text-white"
+                style="background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none">
+                Найти
+            </button>
+        </form>
+    </div>
+</div>
+
 <div class="container py-4">
 
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-primary bg-opacity-10">
-                        <i class="bi bi-chat-dots text-primary"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1"><?= $total_topics ?></div>
-                        <div class="text-muted small">Тем</div>
-                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10"><i class="bi bi-chat-dots text-primary"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1"><?= $total_topics ?></div><div class="text-muted small">Тем</div></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-success bg-opacity-10">
-                        <i class="bi bi-chat-text text-success"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1"><?= $total_posts ?></div>
-                        <div class="text-muted small">Постов</div>
-                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10"><i class="bi bi-chat-text text-success"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1"><?= $total_posts ?></div><div class="text-muted small">Постов</div></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-warning bg-opacity-10">
-                        <i class="bi bi-people text-warning"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1"><?= $total_users ?></div>
-                        <div class="text-muted small">Участников</div>
-                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10"><i class="bi bi-people text-warning"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1"><?= $total_users ?></div><div class="text-muted small">Участников</div></div>
                 </div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
             <div class="card stat-card p-3">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="stat-icon bg-info bg-opacity-10">
-                        <i class="bi bi-circle-fill text-info" style="font-size:10px"></i>
-                    </div>
-                    <div>
-                        <div class="fs-4 fw-bold lh-1 text-success">●</div>
-                        <div class="text-muted small">Онлайн</div>
-                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10"><i class="bi bi-circle-fill text-info" style="font-size:10px"></i></div>
+                    <div><div class="fs-4 fw-bold lh-1 text-success">●</div><div class="text-muted small">Онлайн</div></div>
                 </div>
             </div>
         </div>
@@ -1575,4 +1327,5 @@ body { background-color: #f0f2f5; }
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
 

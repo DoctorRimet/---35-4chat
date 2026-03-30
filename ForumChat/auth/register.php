@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         $user->username = $username;
         $user->email = $email;
-        $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $user->password_hash = User::hashPassword($password);
 
         if ($user->create()) {
             $success = true;
