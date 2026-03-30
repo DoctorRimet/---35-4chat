@@ -401,6 +401,21 @@ INSERT INTO `sessions` (`id`, `user_id`, `token`, `expires_at`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `tags`
 --
 
@@ -650,6 +665,14 @@ ALTER TABLE `sessions`
   ADD KEY `user_id` (`user_id`);
 
 --
+-- Индексы таблицы `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD UNIQUE KEY `token` (`token`);
+
+--
 -- Индексы таблицы `tags`
 --
 ALTER TABLE `tags`
@@ -774,6 +797,12 @@ ALTER TABLE `sessions`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
+-- AUTO_INCREMENT для таблицы `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT для таблицы `tags`
 --
 ALTER TABLE `tags`
@@ -890,6 +919,12 @@ ALTER TABLE `post_history`
 --
 ALTER TABLE `sessions`
   ADD CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Ограничения внешнего ключа таблицы `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Ограничения внешнего ключа таблицы `topics`

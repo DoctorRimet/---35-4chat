@@ -244,7 +244,7 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                             <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
                             <label class="form-check-label small text-muted" for="remember">Запомнить меня на 30 дней</label>
                         </div>
-                        <a href="#" class="small text-decoration-none" style="color:#6366f1">Забыли пароль?</a>
+                        <a href="password_reset_request.php" class="small text-decoration-none" style="color:#6366f1">Забыли пароль?</a>
                     </div>
                     <?php endif; ?>
                     <button type="submit" class="btn btn-primary-custom btn-primary w-100"><?= $twoFactorStep ? 'Подтвердить 2FA' : 'Войти' ?></button>

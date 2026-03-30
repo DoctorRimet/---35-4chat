@@ -284,6 +284,108 @@ class User {
         return $stmt->execute();
     }
 
+    private function ensurePasswordResetsTableExists() {
+        $stmt = $this->conn->query("SHOW TABLES LIKE 'password_resets'");
+        if ($stmt && $stmt->fetch()) {
+            return true;
+        }
+
+        $sql = "CREATE TABLE IF NOT EXISTS password_resets (
+            id BIGINT(20) NOT NULL AUTO_INCREMENT,
+            user_id BIGINT(20) NOT NULL,
+            token VARCHAR(255) NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            used TINYINT(1) NOT NULL DEFAULT 0,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
+            UNIQUE KEY token (token),
+            CONSTRAINT password_resets_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
+
+        $this->conn->exec($sql);
+        return true;
+    }
+
+    public function createPasswordResetToken($user_id) {
+        $this->ensurePasswordResetsTableExists();
+
+        $token = bin2hex(random_bytes(32));
+
+        $stmt = $this->conn->prepare(
+            'INSERT INTO password_resets (user_id, token, expires_at, used, created_at)
+             VALUES (:user_id, :token, DATE_ADD(NOW(), INTERVAL 1 HOUR), 0, NOW())'
+        );
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':token', $token);
+
+        return $stmt->execute() ? $token : false;
+    }
+
+    public function createPasswordResetTokenByEmail($email) {
+        $user = $this->getByEmail($email);
+        if (!$user) {
+            return false;
+        }
+        return $this->createPasswordResetToken($user['id']);
+    }
+
+    public function getPasswordResetRequest($token) {
+        $this->ensurePasswordResetsTableExists();
+
+        $stmt = $this->conn->prepare(
+            'SELECT pr.*, u.id AS user_id, u.username, u.email
+             FROM password_resets pr
+             JOIN users u ON u.id = pr.user_id
+             WHERE pr.token = :token
+               AND pr.used = 0
+               AND pr.expires_at >= NOW()
+             LIMIT 1'
+        );
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function consumePasswordResetToken($token) {
+        $stmt = $this->conn->prepare(
+            'UPDATE password_resets SET used = 1 WHERE token = :token'
+        );
+        $stmt->bindParam(':token', $token);
+        return $stmt->execute();
+    }
+
+    public function resetPasswordByToken($token, $password) {
+        $request = $this->getPasswordResetRequest($token);
+        if (!$request) {
+            return false;
+        }
+
+        $this->conn->beginTransaction();
+        try {
+            $updated = $this->updatePassword($request['user_id'], $password);
+            if (!$updated) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $this->consumePasswordResetToken($token);
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            return false;
+        }
+    }
+
+    public function invalidatePasswordResetTokens($user_id) {
+        $stmt = $this->conn->prepare(
+            'UPDATE password_resets SET used = 1 WHERE user_id = :user_id'
+        );
+        $stmt->bindParam(':user_id', $user_id);
+        return $stmt->execute();
+    }
+
     public function getProfile($user_id) {
         $stmt = $this->conn->prepare('SELECT * FROM user_profiles WHERE user_id = :user_id LIMIT 1');
         $stmt->bindParam(':user_id', $user_id);
