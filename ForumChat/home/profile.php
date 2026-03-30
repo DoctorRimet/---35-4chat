@@ -2,12 +2,14 @@
 require_once __DIR__ . '/../auth/auth_check.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../classes/Post.php';
+require_once __DIR__ . '/../classes/Comment.php';
 require_once __DIR__ . '/../classes/User.php';
 
 $db = new Database();
 $conn = $db->getConnection();
 $user = new User($conn);
 $post = new Post($conn);
+$comment = new Comment($conn);
 
 $userId = $_SESSION['user_id'];
 $userInfo = $user->getById($userId);
@@ -44,6 +46,10 @@ $postsStmt = $conn->prepare(
 $postsStmt->bindParam(':user_id', $userId);
 $postsStmt->execute();
 $userPosts = $postsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$commentsStmt = $comment->getByUserId($userId);
+$userComments = $commentsStmt->fetchAll(PDO::FETCH_ASSOC);
+$commentCount = count($userComments);
 
 $postCount = count($userPosts);
 $profileTitle = htmlspecialchars($userInfo['username'] ?? 'Пользователь');
@@ -138,7 +144,7 @@ body { background-color: #f0f2f5; }
                     <h6 class="fw-semibold">Статистика</h6>
                     <ul class="list-unstyled mb-0">
                         <li class="mb-2"><strong><?= $postCount ?></strong> <?= $postCount === 1 ? 'пост' : 'постов' ?></li>
-                        <li class="mb-0">Комментариев: пока нет данных</li>
+                        <li class="mb-0"><strong><?= $commentCount ?></strong> <?= $commentCount === 1 ? 'комментарий' : 'комментариев' ?></li>
                     </ul>
                 </div>
             </div>
@@ -183,11 +189,31 @@ body { background-color: #f0f2f5; }
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
                         <h5 class="mb-1">Комментарии</h5>
-                        <small class="text-muted">История комментариев недоступна в текущей версии.</small>
+                        <small class="text-muted">Последние комментарии, которые вы оставили.</small>
                     </div>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary">Скоро</span>
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary">Всего: <?= $commentCount ?></span>
                 </div>
-                <p class="text-muted mb-0">Для отображения истории комментариев на этой странице потребуется реализация таблицы комментариев и механизма их сохранения.</p>
+                <?php if (empty($userComments)): ?>
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-chat-left-text display-4 mb-3"></i>
+                    <p class="mb-0">Вы ещё не оставили комментариев.</p>
+                </div>
+                <?php else: ?>
+                <div class="d-flex flex-column gap-3">
+                    <?php foreach ($userComments as $entry): ?>
+                    <div class="activity-item">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div>
+                                <strong><?= htmlspecialchars($entry['topic_title']) ?></strong><br>
+                                <small class="text-muted">Пост ID <?= $entry['post_id'] ?> · <?= date('d.m.Y H:i', strtotime($entry['created_at'])) ?></small>
+                            </div>
+                            <a href="../topic.php?id=<?= $entry['topic_id'] ?>" class="btn btn-sm btn-outline-primary rounded-3">Перейти</a>
+                        </div>
+                        <p class="mb-0 text-muted"><?= nl2br(htmlspecialchars(mb_substr($entry['content'], 0, 260))) ?></p>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>

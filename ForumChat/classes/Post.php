@@ -75,6 +75,17 @@ class Post {
         return false;
     }
 
+    public function getByTopicId($topic_id) {
+        $sql = 'SELECT * FROM ' . $this->table . '
+                WHERE topic_id = :topic_id AND deleted = 0
+                ORDER BY created_at ASC';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':topic_id', $topic_id);
+        $stmt->execute();
+        return $stmt;
+    }
+
     public function update() {
 
         $sql = 'UPDATE ' . $this->table . ' SET
