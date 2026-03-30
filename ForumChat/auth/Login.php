@@ -14,7 +14,7 @@ if (isset($_GET['guest'])) {
     $_SESSION['guest'] = true;
     $_SESSION['user_id'] = 0;
     $_SESSION['username'] = 'Гость_' . rand(1000, 9999);
-    header('Location: ../home/index.php');
+    header('Location: ../index.php');
     exit;
 }
 
@@ -191,7 +191,7 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                     <div class="mb-3"><span class="display-4 text-success">✓</span></div>
                     <h4 class="fw-bold mb-2">Добро пожаловать!</h4>
                     <p class="text-muted mb-4">Вы вошли как <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
-                    <a href="../home/index.php" class="btn btn-primary-custom btn-primary w-100">Перейти на форум →</a>
+                    <a href="../index.php" class="btn btn-primary-custom btn-primary w-100">Перейти на форум →</a>
                 </div>
                 <?php else: ?>
                 <h4 class="fw-bold mb-1"><?= $twoFactorStep ? 'Введите код 2FA' : 'Добро пожаловать' ?></h4>
