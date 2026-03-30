@@ -58,6 +58,34 @@ class Comment {
         return $stmt;
     }
 
+    public function getRecentByUserId($user_id, $limit = 3) {
+        $sql = 'SELECT c.id, c.post_id, c.content, c.created_at, p.topic_id, t.title AS topic_title
+                FROM ' . $this->table . ' c
+                JOIN posts p ON p.id = c.post_id
+                JOIN topics t ON t.id = p.topic_id
+                WHERE c.author_id = :author_id
+                  AND c.deleted = 0
+                ORDER BY c.created_at DESC
+                LIMIT :limit';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':author_id', $user_id);
+        $stmt->bindValue(':limit', (int) $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    public function countByUserId($user_id) {
+        $sql = 'SELECT COUNT(*) AS total FROM ' . $this->table . ' WHERE author_id = :author_id AND deleted = 0';
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':author_id', $user_id);
+        $stmt->execute();
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? (int) $row['total'] : 0;
+    }
+
     public function countByPostId($post_id) {
         $sql = 'SELECT COUNT(*) AS total FROM ' . $this->table . ' WHERE post_id = :post_id AND deleted = 0';
         $stmt = $this->conn->prepare($sql);

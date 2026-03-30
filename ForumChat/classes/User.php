@@ -242,6 +242,73 @@ class User {
         return $stmt->rowCount() > 0;
     }
 
+    public function isUsernameTakenByOther($username, $user_id) {
+        $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE username = :username AND id <> :id LIMIT 1");
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':id', $user_id);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+
+    public function verifyPassword($password, $hash) {
+        return password_verify($password, $hash);
+    }
+
+    public function isEmailTakenByOther($email, $user_id) {
+        $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE email = :email AND id <> :id LIMIT 1");
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':id', $user_id);
+        $stmt->execute();
+        return $stmt->rowCount() > 0;
+    }
+
+    public function updateUsername($user_id, $username) {
+        $stmt = $this->conn->prepare("UPDATE {$this->table} SET username = :username WHERE id = :id");
+        $stmt->bindParam(':username', $username);
+        $stmt->bindParam(':id', $user_id);
+        return $stmt->execute();
+    }
+
+    public function updateEmail($user_id, $email) {
+        $stmt = $this->conn->prepare("UPDATE {$this->table} SET email = :email WHERE id = :id");
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':id', $user_id);
+        return $stmt->execute();
+    }
+
+    public function updatePassword($user_id, $password) {
+        $hashed = self::hashPassword($password);
+        $stmt = $this->conn->prepare("UPDATE {$this->table} SET password_hash = :password_hash WHERE id = :id");
+        $stmt->bindParam(':password_hash', $hashed);
+        $stmt->bindParam(':id', $user_id);
+        return $stmt->execute();
+    }
+
+    public function getProfile($user_id) {
+        $stmt = $this->conn->prepare('SELECT * FROM user_profiles WHERE user_id = :user_id LIMIT 1');
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function updateProfile($user_id, $avatar_url = null, $bio = null, $first_name = null, $last_name = null) {
+        $existing = $this->getProfile($user_id);
+
+        if ($existing) {
+            $sql = 'UPDATE user_profiles SET avatar_url = :avatar_url, bio = :bio, first_name = :first_name, last_name = :last_name WHERE user_id = :user_id';
+        } else {
+            $sql = 'INSERT INTO user_profiles (user_id, avatar_url, bio, first_name, last_name) VALUES (:user_id, :avatar_url, :bio, :first_name, :last_name)';
+        }
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':avatar_url', $avatar_url);
+        $stmt->bindParam(':bio', $bio);
+        $stmt->bindParam(':first_name', $first_name);
+        $stmt->bindParam(':last_name', $last_name);
+        return $stmt->execute();
+    }
+
     public function update() {
         $sql = "UPDATE {$this->table}
                 SET username=:username, email=:email, status=:status

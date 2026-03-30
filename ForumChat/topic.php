@@ -72,23 +72,48 @@ $posts = $postsStmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body class="bg-light">
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
     <div class="container">
-        <a class="navbar-brand" href="index.php">ForumChat</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="index.php">
+            <div class="navbar-brand-icon">💬</div>
+            <span>Forum<span style="color:#6366f1">Chat</span></span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="index.php">Главная</a></li>
+
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php">
+                        <i class="bi bi-house me-1"></i>Главная
+                    </a>
+                </li>
                 <?php if ($loggedIn): ?>
-                    <li class="nav-item"><a class="nav-link" href="home/profile.php">Профиль</a></li>
-                    <li class="nav-item"><a class="nav-link" href="auth/logout.php">Выйти</a></li>
-                <?php else: ?>
-                    <li class="nav-item"><a class="nav-link" href="auth/login.php">Войти</a></li>
-                    <li class="nav-item"><a class="nav-link" href="auth/register.php">Регистрация</a></li>
+                <li class="nav-item">
+                    <a class="nav-link" href="home/profile.php">
+                        <i class="bi bi-person me-1"></i>Профиль
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="create.php">
+                        <i class="bi bi-plus-circle me-1"></i>Создать тему
+                    </a>
+                </li>
                 <?php endif; ?>
             </ul>
+            <div class="d-flex align-items-center gap-2">
+                <?php if ($loggedIn): ?>
+                    <a href="auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
+                        <i class="bi bi-box-arrow-right me-1"></i>Выйти
+                    </a>
+                <?php else: ?>
+                    <a href="auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Войти
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </nav>

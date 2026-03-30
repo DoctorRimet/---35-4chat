@@ -248,11 +248,21 @@ body { background-color: #f0f2f5; }
                         </div>
                         <div>
                             <div class="fw-bold"><?= $username ?></div>
-                            <?php if ($is_guest): ?>
-                            <span class="badge bg-secondary">Гость</span>
-                            <?php else: ?>
-                            <span class="badge bg-success bg-opacity-10 text-success">Участник</span>
-                            <?php endif; ?>
+                    <?php if ($is_guest): ?>
+                    <span class="badge bg-secondary">Гость</span>
+                    <?php else:
+                        $sidebarRoleLabel = 'Участник';
+                        $sidebarBadgeClass = 'bg-success bg-opacity-10 text-success';
+                        if ($userRole === 'moderator') {
+                            $sidebarRoleLabel = 'Модератор';
+                            $sidebarBadgeClass = 'bg-warning bg-opacity-10 text-warning';
+                        } elseif ($userRole === 'admin') {
+                            $sidebarRoleLabel = 'Админ';
+                            $sidebarBadgeClass = 'bg-primary bg-opacity-10 text-primary';
+                        }
+                    ?>
+                    <span class="badge <?= $sidebarBadgeClass ?>"><?= $sidebarRoleLabel ?></span>
+                    <?php endif; ?>
                         </div>
                     </div>
                     <?php if ($is_guest): ?>
