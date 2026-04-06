@@ -9,6 +9,7 @@ $user = new User($conn);
 
 $errors = [];
 $success = false;
+$confirmationLink = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
@@ -45,10 +46,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($errors)) {
         $user->username = $username;
         $user->email = $email;
-        $user->password_hash = password_hash($password, PASSWORD_DEFAULT);
+        $user->password_hash = User::hashPassword($password);
 
         if ($user->create()) {
-            $success = true;
+            $token = $user->createEmailConfirmationToken($user->id);
+            if ($token) {
+                $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+                $host = $_SERVER['HTTP_HOST'];
+                $base = rtrim(dirname($_SERVER['REQUEST_URI']), '/\\');
+                $confirmationLink = "$scheme://$host$base/confirm_email.php?token=" . urlencode($token);
+
+                $subject = 'Подтверждение email ForumChat';
+                $message = "Здравствуйте, $username!\n\nДля подтверждения email перейдите по ссылке:\n$confirmationLink\n\nЕсли ссылка не работает, скопируйте её в браузер.\n\nС уважением, команда ForumChat";
+                $headers = 'From: no-reply@' . $host . "\r\n" .
+                           'MIME-Version: 1.0\r\n' .
+                           'Content-Type: text/plain; charset=UTF-8\r\n';
+                @mail($email, $subject, $message, $headers);
+
+                $success = true;
+            } else {
+                $errors[] = 'Ошибка при отправке письма подтверждения. Попробуйте снова.';
+            }
         } else {
             $errors[] = 'Ошибка при создании аккаунта. Попробуйте снова.';
         }
@@ -177,6 +195,15 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                         Добро пожаловать, <strong><?= htmlspecialchars($_POST['username']) ?></strong>!<br>
                         Ваш аккаунт успешно зарегистрирован.
                     </p>
+                    <p class="text-muted small mb-3">
+                        Чтобы активировать аккаунт, подтвердите email по ссылке в письме.
+                    </p>
+                    <?php if ($confirmationLink): ?>
+                    <div class="alert alert-secondary small">
+                        <strong>Тестовая ссылка:</strong><br>
+                        <a href="<?= htmlspecialchars($confirmationLink) ?>"><?= htmlspecialchars($confirmationLink) ?></a>
+                    </div>
+                    <?php endif; ?>
                     <a href="login.php" class="btn btn-primary-custom btn-primary w-100">Войти в аккаунт →</a>
                 </div>
 
