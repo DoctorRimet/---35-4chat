@@ -21,16 +21,18 @@ class Topic {
     public function create() {
         $sql = "INSERT INTO {$this->table}
                 (title, description, category_id, author_id, status)
-                VALUES (:title, :description, :category_id, :author_id, 'open')";
+                VALUES (:title, :description, :category_id, :author_id, :status)";
         $stmt = $this->conn->prepare($sql);
 
         $this->title = htmlspecialchars(strip_tags($this->title));
         $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->status = $this->status ?: 'open';
 
         $stmt->bindParam(':title', $this->title);
         $stmt->bindParam(':description', $this->description);
         $stmt->bindParam(':category_id', $this->category_id);
         $stmt->bindParam(':author_id', $this->author_id);
+        $stmt->bindParam(':status', $this->status);
 
         if ($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
@@ -40,7 +42,7 @@ class Topic {
     }
 
     public function getAll() {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} ORDER BY created_at DESC");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE status != 'draft' ORDER BY created_at DESC");
         $stmt->execute();
         return $stmt;
     }
@@ -75,6 +77,13 @@ class Topic {
         $stmt->bindParam(':id', $this->id);
 
         return $stmt->execute();
+    }
+
+    public function getDraftsByAuthor($author_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE author_id=:author_id AND status='draft'");
+        $stmt->bindParam(':author_id', $author_id);
+        $stmt->execute();
+        return $stmt;
     }
 
     public function delete($id) {

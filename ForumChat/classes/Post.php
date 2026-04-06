@@ -8,6 +8,7 @@ class Post {
     public $topic_id;
     public $author_id;
     public $content;
+    public $status;
     public $created_at;
     public $updated_at;
     public $deleted;
@@ -19,16 +20,18 @@ class Post {
     public function create() {
 
         $sql = 'INSERT INTO ' . $this->table . '
-            (topic_id, author_id, content, deleted)
-            VALUES (:topic_id, :author_id, :content, 0)';
+            (topic_id, author_id, content, status, deleted)
+            VALUES (:topic_id, :author_id, :content, :status, 0)';
 
         $stmt = $this->conn->prepare($sql);
 
         $this->content = htmlspecialchars(strip_tags($this->content));
+        $this->status = $this->status ?: 'published';
 
         $stmt->bindParam(':topic_id', $this->topic_id);
         $stmt->bindParam(':author_id', $this->author_id);
         $stmt->bindParam(':content', $this->content);
+        $stmt->bindParam(':status', $this->status);
 
         if ($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
@@ -41,7 +44,7 @@ class Post {
     public function getAll() {
 
         $sql = 'SELECT * FROM ' . $this->table . '
-                WHERE deleted = 0
+                WHERE deleted = 0 AND status = \'published\'
                 ORDER BY created_at DESC';
 
         $stmt = $this->conn->prepare($sql);
@@ -77,7 +80,7 @@ class Post {
 
     public function getByTopicId($topic_id) {
         $sql = 'SELECT * FROM ' . $this->table . '
-                WHERE topic_id = :topic_id
+                WHERE topic_id = :topic_id AND deleted = 0 AND status = \'published\'
                 ORDER BY created_at ASC';
 
         $stmt = $this->conn->prepare($sql);
@@ -111,6 +114,54 @@ class Post {
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':id', $id);
 
+        return $stmt->execute();
+    }
+
+    public function getDraftsByAuthor($author_id) {
+        $sql = 'SELECT * FROM ' . $this->table . '
+                WHERE author_id = :author_id AND status = \'draft\' AND deleted = 0
+                ORDER BY updated_at DESC';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':author_id', $author_id);
+        $stmt->execute();
+        return $stmt;
+    }
+
+    public function saveDraft($topic_id, $author_id, $content) {
+        // Check if draft already exists for this topic and author
+        $sql = 'SELECT id FROM ' . $this->table . '
+                WHERE topic_id = :topic_id AND author_id = :author_id AND status = \'draft\' AND deleted = 0
+                LIMIT 1';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':topic_id', $topic_id);
+        $stmt->bindParam(':author_id', $author_id);
+        $stmt->execute();
+        $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($existing) {
+            // Update existing draft
+            $this->id = $existing['id'];
+            $this->content = $content;
+            return $this->update();
+        } else {
+            // Create new draft
+            $this->topic_id = $topic_id;
+            $this->author_id = $author_id;
+            $this->content = $content;
+            $this->status = 'draft';
+            return $this->create();
+        }
+    }
+
+    public function publishDraft($id) {
+        $sql = 'UPDATE ' . $this->table . '
+                SET status = \'published\'
+                WHERE id = :id AND status = \'draft\'';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id);
         return $stmt->execute();
     }
 }
