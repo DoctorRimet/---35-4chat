@@ -39,9 +39,11 @@ class User {
     }
 
     public function create() {
+        $this->ensureEmailConfirmedColumnExists();
+
         $sql = "INSERT INTO {$this->table}
-                (username, email, password_hash, status, failed_attempts)
-                VALUES (:username, :email, :password_hash, 'active', 0)";
+                (username, email, password_hash, status, failed_attempts, email_confirmed)
+                VALUES (:username, :email, :password_hash, 'active', 0, 0)";
         $stmt = $this->conn->prepare($sql);
         $this->username = htmlspecialchars(strip_tags($this->username));
         $this->email = htmlspecialchars(strip_tags($this->email));
@@ -54,6 +56,130 @@ class User {
             return true;
         }
         return false;
+    }
+
+    private function ensureEmailConfirmedColumnExists() {
+        $stmt = $this->conn->query("SHOW COLUMNS FROM {$this->table} LIKE 'email_confirmed'");
+        if ($stmt && $stmt->fetch()) {
+            return true;
+        }
+
+        $sql = "ALTER TABLE {$this->table} ADD COLUMN email_confirmed TINYINT(1) NOT NULL DEFAULT 1";
+        $this->conn->exec($sql);
+        return true;
+    }
+
+    private function ensureEmailConfirmationsTableExists() {
+        $stmt = $this->conn->query("SHOW TABLES LIKE 'email_confirmations'");
+        if ($stmt && $stmt->fetch()) {
+            $columnStmt = $this->conn->query("SHOW COLUMNS FROM email_confirmations LIKE 'id'");
+            $columnInfo = $columnStmt ? $columnStmt->fetch(PDO::FETCH_ASSOC) : false;
+            if ($columnInfo && stripos($columnInfo['Extra'], 'auto_increment') === false) {
+                $isKey = !empty($columnInfo['Key']);
+                if ($isKey) {
+                    $this->conn->exec("ALTER TABLE email_confirmations MODIFY COLUMN id BIGINT(20) NOT NULL AUTO_INCREMENT");
+                } else {
+                    $this->conn->exec(
+                        "ALTER TABLE email_confirmations MODIFY COLUMN id BIGINT(20) NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (id)"
+                    );
+                }
+            }
+            return true;
+        }
+
+        $sql = "CREATE TABLE IF NOT EXISTS email_confirmations (
+            id BIGINT(20) NOT NULL AUTO_INCREMENT,
+            user_id BIGINT(20) NOT NULL,
+            token VARCHAR(255) NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            used TINYINT(1) NOT NULL DEFAULT 0,
+            created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY user_id (user_id),
+            UNIQUE KEY token (token),
+            CONSTRAINT email_confirmations_ibfk_1 FOREIGN KEY (user_id) REFERENCES users (id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci";
+
+        $this->conn->exec($sql);
+        return true;
+    }
+
+    public function createEmailConfirmationToken($user_id) {
+        $this->ensureEmailConfirmationsTableExists();
+
+        $token = bin2hex(random_bytes(32));
+        $stmt = $this->conn->prepare(
+            'INSERT INTO email_confirmations (user_id, token, expires_at, used, created_at)
+             VALUES (:user_id, :token, DATE_ADD(NOW(), INTERVAL 24 HOUR), 0, NOW())'
+        );
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':token', $token);
+        return $stmt->execute() ? $token : false;
+    }
+
+    public function createEmailConfirmationTokenByEmail($email) {
+        $user = $this->getByEmail($email);
+        if (!$user) {
+            return false;
+        }
+        return $this->createEmailConfirmationToken($user['id']);
+    }
+
+    public function getEmailConfirmationRequest($token) {
+        $this->ensureEmailConfirmationsTableExists();
+
+        $stmt = $this->conn->prepare(
+            'SELECT ec.*, u.id AS user_id, u.username, u.email
+             FROM email_confirmations ec
+             JOIN users u ON u.id = ec.user_id
+             WHERE ec.token = :token
+               AND ec.used = 0
+               AND ec.expires_at >= NOW()
+             LIMIT 1'
+        );
+        $stmt->bindParam(':token', $token);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function confirmEmailToken($token) {
+        $request = $this->getEmailConfirmationRequest($token);
+        if (!$request) {
+            return false;
+        }
+
+        $this->conn->beginTransaction();
+        try {
+            $stmt = $this->conn->prepare(
+                'UPDATE users SET email_confirmed = 1 WHERE id = :id'
+            );
+            $stmt->bindParam(':id', $request['user_id']);
+            $updated = $stmt->execute();
+            if (!$updated) {
+                $this->conn->rollBack();
+                return false;
+            }
+
+            $stmt = $this->conn->prepare(
+                'UPDATE email_confirmations SET used = 1 WHERE token = :token'
+            );
+            $stmt->bindParam(':token', $token);
+            $stmt->execute();
+
+            $this->conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->conn->rollBack();
+            return false;
+        }
+    }
+
+    public function invalidateEmailConfirmationTokens($user_id) {
+        $stmt = $this->conn->prepare(
+            'UPDATE email_confirmations SET used = 1 WHERE user_id = :user_id'
+        );
+        $stmt->bindParam(':user_id', $user_id);
+        return $stmt->execute();
     }
 
     public static function hashPassword($password) {
@@ -73,14 +199,8 @@ class User {
     }
 
     public function getPrimaryRole($user_id) {
-        $roles = $this->getRoles($user_id);
-        if (in_array(self::ROLE_ADMIN, $roles, true)) {
-            return self::ROLE_ADMIN;
-        }
-        if (in_array(self::ROLE_MODERATOR, $roles, true)) {
-            return self::ROLE_MODERATOR;
-        }
-        return self::ROLE_USER;
+        $user = $this->getById($user_id);
+        return $user['user_role'] ?? self::ROLE_USER;
     }
 
     public function userHasRole($user_id, $role_name) {

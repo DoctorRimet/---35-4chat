@@ -77,7 +77,7 @@ class Post {
 
     public function getByTopicId($topic_id) {
         $sql = 'SELECT * FROM ' . $this->table . '
-                WHERE topic_id = :topic_id AND deleted = 0
+                WHERE topic_id = :topic_id
                 ORDER BY created_at ASC';
 
         $stmt = $this->conn->prepare($sql);

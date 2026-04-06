@@ -6,9 +6,13 @@ class Topic {
 
     public $id;
     public $title;
+    public $description;
+    public $category_id;
     public $author_id;
     public $status;
     public $created_at;
+    public $updated_at;
+    public $deleted;
 
     public function __construct($db) {
         $this->conn = $db;
@@ -16,20 +20,27 @@ class Topic {
 
     public function create() {
         $sql = "INSERT INTO {$this->table}
-                (title, author_id, status)
-                VALUES (:title, :author_id, 'open')";
+                (title, description, category_id, author_id, status)
+                VALUES (:title, :description, :category_id, :author_id, 'open')";
         $stmt = $this->conn->prepare($sql);
 
         $this->title = htmlspecialchars(strip_tags($this->title));
+        $this->description = htmlspecialchars(strip_tags($this->description));
 
         $stmt->bindParam(':title', $this->title);
+        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':category_id', $this->category_id);
         $stmt->bindParam(':author_id', $this->author_id);
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            $this->id = $this->conn->lastInsertId();
+            return true;
+        }
+        return false;
     }
 
     public function getAll() {
-        $stmt = $this->conn->prepare("SELECT * FROM {$this->table}");
+        $stmt = $this->conn->prepare("SELECT * FROM {$this->table} ORDER BY created_at DESC");
         $stmt->execute();
         return $stmt;
     }
@@ -50,11 +61,16 @@ class Topic {
 
     public function update() {
         $sql = "UPDATE {$this->table}
-                SET title=:title, status=:status
+                SET title=:title, description=:description, category_id=:category_id, status=:status
                 WHERE id=:id";
         $stmt = $this->conn->prepare($sql);
 
+        $this->title = htmlspecialchars(strip_tags($this->title));
+        $this->description = htmlspecialchars(strip_tags($this->description));
+
         $stmt->bindParam(':title', $this->title);
+        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':category_id', $this->category_id);
         $stmt->bindParam(':status', $this->status);
         $stmt->bindParam(':id', $this->id);
 
@@ -62,6 +78,21 @@ class Topic {
     }
 
     public function delete($id) {
+        // Удаляем сначала все комментарии к постам этой темы
+        $sql = "DELETE FROM comments WHERE post_id IN (
+                    SELECT id FROM posts WHERE topic_id = :id
+                )";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        // Удаляем все посты этой темы
+        $sql = "DELETE FROM posts WHERE topic_id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        // Удаляем саму тему
         $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE id=:id");
         $stmt->bindParam(':id', $id);
         return $stmt->execute();

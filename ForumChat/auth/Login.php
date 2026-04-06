@@ -90,6 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = "Аккаунт заблокирован. Попробуйте через {$mins} мин.";
             } elseif ($userData['status'] === 'blocked') {
                 $errors[] = 'Ваш аккаунт заблокирован администратором';
+            } elseif (isset($userData['email_confirmed']) && $userData['email_confirmed'] == 0) {
+                $errors[] = 'Подтвердите ваш email. Проверить почту можно по ссылке, отправленной при регистрации.';
             } elseif (!password_verify($password, $userData['password_hash'])) {
                 $failedAttempts = $user->incrementFailedAttempts($userData['id']);
                 $attemptsLeft = $failedAttempts === false

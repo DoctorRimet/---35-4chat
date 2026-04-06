@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1:3306
--- Время создания: Мар 30 2026 г., 14:32
+-- Время создания: Апр 06 2026 г., 02:46
 -- Версия сервера: 8.0.15
 -- Версия PHP: 7.3.9
 
@@ -57,6 +57,7 @@ CREATE TABLE `comments` (
   `id` bigint(20) NOT NULL,
   `post_id` bigint(20) NOT NULL,
   `author_id` bigint(20) NOT NULL,
+  `parent_comment_id` bigint(20) DEFAULT NULL,
   `content` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -67,8 +68,11 @@ CREATE TABLE `comments` (
 -- Дамп данных таблицы `comments`
 --
 
-INSERT INTO `comments` (`id`, `post_id`, `author_id`, `content`, `deleted`) VALUES
-(0, 49, 11, 'ЙОУ неплохо выглядит', 0);
+INSERT INTO `comments` (`id`, `post_id`, `author_id`, `parent_comment_id`, `content`, `deleted`) VALUES
+(0, 49, 11, NULL, 'ЙОУ неплохо выглядит', 0),
+(1, 101, 20, NULL, 'ЙОЦООЙООУЙЦ', 0),
+(2, 101, 20, 1, 'иди', 0),
+(3, 101, 20, 2, 'уцк цукцу ц куц', 0);
 
 -- --------------------------------------------------------
 
@@ -98,6 +102,30 @@ CREATE TABLE `drafts` (
   `content` text,
   `saved_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `email_confirmations`
+--
+
+CREATE TABLE `email_confirmations` (
+  `id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `email_confirmations`
+--
+
+INSERT INTO `email_confirmations` (`id`, `user_id`, `token`, `expires_at`, `used`) VALUES
+(1, 18, '89d6eac6115198518fb8a16664838ac8b4409cd420be2af37ca8eff91d32d0f2', '2026-04-06 23:06:20', 1),
+(2, 19, 'dcea6e86324978375a162bc8deb9c1e1125ced9de0ab38241e61f41253c37689', '2026-04-06 23:06:51', 1),
+(3, 20, 'dd39a19e940d57f5ed1e5e58d100f01053a1aafb84e1749302d7ebeea5bcf669', '2026-04-06 23:21:40', 1);
 
 -- --------------------------------------------------------
 
@@ -168,6 +196,34 @@ CREATE TABLE `notifications` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблицы `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` bigint(20) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` timestamp NOT NULL,
+  `used` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `password_resets`
+--
+
+INSERT INTO `password_resets` (`id`, `user_id`, `token`, `expires_at`, `used`) VALUES
+(1, 14, '6b2ac113b47bbf98269cf97d545a8e936676f1d1234fa12e1ac350d6104875ce', '2026-03-30 11:53:49', 0),
+(2, 14, 'b6dcd8a1a6c3e324873ff31ac9466c8ca0b81bba0638ade491b424d328addea7', '2026-03-30 11:54:00', 0),
+(3, 14, '07d14c226986d007662815edfe6cb06bbe1a6a7b48c1fb811b8485f1aace171b', '2026-03-30 13:56:06', 0),
+(4, 14, 'e2dd53837e0d171e3e5ac66980ede9b4028bccb2ddeeb70cbac000d0ff2a0dfa', '2026-03-30 13:56:12', 0),
+(5, 14, '182f31bdbf1cd08d9979e6f5829ccc82d3d49c61c648a6da08a0fdbae8395b86', '2026-03-30 14:06:49', 0),
+(6, 11, '925bf1b58b378be2e9d4c45c6bd78330d21ca54723475c449e4f158b0efe84be', '2026-04-05 23:37:13', 0),
+(7, 11, 'c6d2b5c0fc37936ff88f966f72371f6ea8dc7f60f9a495b975abd0fb42265b83', '2026-04-05 23:37:22', 0);
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблицы `posts`
 --
 
@@ -205,7 +261,7 @@ INSERT INTO `posts` (`id`, `topic_id`, `author_id`, `content`, `deleted`) VALUES
 (17, 17, 9, 'В этой конурке он приладил к стене узенькую трехногую кровать, накрыв ее небольшим подобием тюфяка, убитым и тоненьким, как лепешка. Кроме страсти к чтению, он имел еще два обыкновения, составлявшие.', 0),
 (18, 17, 7, 'Вот какой был Ноздрев! Может быть, назовут его характером избитым, станут говорить, что теперь ты упишешь полбараньего бока с кашей, закусивши ватрушкою в тарелку, а тогда бы у тебя тут гербовой.', 0),
 (19, 11, 5, 'Герой наш, по обыкновению, сейчас вступил с нею в разговор и кончился. Да еще, когда бричка ударилася оглоблями в забор и когда он сидит среди своих подчиненных, — да беда, времена плохи, вот и.', 0),
-(20, 1, 4, 'После небольшого послеобеденного сна он приказал подать умыться и чрезвычайно долго тер мылом обе щеки, подперши их извнутри языком; потом, взявши с плеча трактирного слуги полотенце, вытер им со.', 0),
+(20, 1, 4, 'После небольшого послеобеденного сна он приказал подать умыться и чрезвычайно долго тер мылом обе щеки, подперши их извнутри языком; потом, взявши с плеча трактирного слуги полотенце, вытер им со.', 1),
 (21, 18, 7, 'Позвольте, позвольте! — сказал наконец Чичиков, изумленный в самом деле что-то — почесывается, — верно, ведьмы блохи. Ну, ты ступай теперь в свою — очередь, вопрос Чичиков. — Да не нужно ничего.', 0),
 (22, 9, 3, 'Последние слова он уже соскочил на крыльцо, сел в бричку. С громом выехала бричка из-под ворот гостиницы на улицу. Проходивший поп снял шляпу, несколько мальчишек в замаранных рубашках протянули.', 0),
 (23, 14, 1, 'Представь: снилось, что меня высекли, ей-ей! и, — подошедши к доске, смешал шашки. Ноздрев вспыхнул и подошел к ручке Феодулии Ивановны, которую она почти впихнула ему в род и потомство, утащит он.', 0),
@@ -264,7 +320,7 @@ INSERT INTO `posts` (`id`, `topic_id`, `author_id`, `content`, `deleted`) VALUES
 (76, 20, 2, 'Коли за дело, на то что минуло более восьми лет их супружеству, из них положили свои лапы Ноздреву на плеча. Обругай оказал такую же дружбу Чичикову и, поднявшись на задние ноги, лизнул его языком в.', 0),
 (77, 17, 6, 'Ведь, я чай, заседатель? — Нет, барин, как можно, чтобы я позабыл. Я уже сказал тебе, брат, что не услышит ни ответа, ни мнения, ни подтверждения, но на которого, однако ж, обе руки на всякий.', 0),
 (78, 15, 4, 'Хорошему человеку всякой отдаст почтение. Вот у помещика, что мы были, хорошие люди. Я с вами если не пороховой, то по крайней мере — в Москве купил его? Ведь он не был твой. — Да, время темное.', 0),
-(79, 1, 8, 'Селифан. — Трактир, — сказала хозяйка, возвращаясь с блюдечком, — — Душенька! Павел Иванович! — вскричал Чичиков, разинув рот и поглядевши ему в лицо. Это заставило его быть осторожным, и как бы.', 0),
+(79, 1, 8, 'Селифан. — Трактир, — сказала хозяйка, возвращаясь с блюдечком, — — Душенька! Павел Иванович! — вскричал Чичиков, разинув рот и поглядевши ему в лицо. Это заставило его быть осторожным, и как бы.', 1),
 (80, 19, 10, 'Селифан, по словам Ноздрева, водилась рыба такой величины, что два человека с трудом вытаскивали штуку, в чем, однако ж, нужно возвратиться к нашим героям, которые стояли уже несколько минут сошелся.', 0),
 (81, 6, 7, 'Чичиков поблагодарил хозяйку, сказавши, что ему нужно что-то сделать, предложить вопрос, а какой вопрос — черт его знает. Кончил он наконец присоединился к толстым, где встретил почти все знакомые.', 0),
 (82, 10, 2, 'Тут были все клички, все повелительные наклонения: стреляй, обругай, порхай, пожар, скосырь, черкай, допекай, припекай, северга, касатка, награда, попечительница. Ноздрев был среди их совершенно как.', 0),
@@ -285,7 +341,9 @@ INSERT INTO `posts` (`id`, `topic_id`, `author_id`, `content`, `deleted`) VALUES
 (97, 13, 4, 'Ты куда теперь едешь? — А строение? — спросил зять. — А вот же поймал, нарочно поймал! — отвечал на все руки. В ту же минуту свой стакан в тарелку. В непродолжительном времени была принесена на стол.', 0),
 (98, 15, 4, 'То и другое слово, да — и трясутся за каждую копейку. Этот, братец, и в просвещенной России есть теперь весьма много почтенных людей, которые числятся теперь — пристроил. Ей место вон где! — Как.', 0),
 (99, 1, 5, 'Манилова воспитана хорошо. А хорошее воспитание, как известно, производится только в самых узеньких рамках. Потом опять следовала героиня греческая Бобелина, которой одна нога казалась больше всего.', 0),
-(100, 5, 2, 'Он послал Селифана отыскивать ворота, что, без сомнения, продолжалось бы долго, если бы — купить крестьян… — сказал Чичиков, — нет, я разумею предмет таков как есть, — живет сам господин. Вот это.', 0);
+(100, 5, 2, 'Он послал Селифана отыскивать ворота, что, без сомнения, продолжалось бы долго, если бы — купить крестьян… — сказал Чичиков, — нет, я разумею предмет таков как есть, — живет сам господин. Вот это.', 0),
+(101, 22, 20, 'Помогите пж', 0),
+(102, 23, 20, '131231231231', 0);
 
 -- --------------------------------------------------------
 
@@ -396,22 +454,11 @@ INSERT INTO `sessions` (`id`, `user_id`, `token`, `expires_at`) VALUES
 (26, 11, 'e962cdf8daf230a0d5f4d36a6d0ede46f64f69bc4fcd10ae3230ab4baa31da72', '2026-04-01 08:10:02'),
 (27, 11, '50998ba898a1d19ec95f34b88d15d14eeba0fb2ee556716ab8a6a0e7beeada55', '2026-04-01 08:21:41'),
 (28, 13, '447c5a647d5e1ce2266507fc0c77301b2145219089b767be59d87e14832f7633', '2026-04-01 09:28:26'),
-(31, 11, 'c8ec8e00f6a526808d17d7b0521a61f0643f39e52138dbcfbef6c53271c3962a', '2026-03-31 09:16:43');
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `password_resets`
---
-
-CREATE TABLE `password_resets` (
-  `id` bigint(20) NOT NULL,
-  `user_id` bigint(20) NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `expires_at` timestamp NOT NULL,
-  `used` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+(31, 11, 'c8ec8e00f6a526808d17d7b0521a61f0643f39e52138dbcfbef6c53271c3962a', '2026-03-31 09:16:43'),
+(32, 11, '32c6fd2b2fb45d5f0e67d1cc728979600304ca25c12537f88abb65937c02739e', '2026-03-31 09:34:13'),
+(37, 11, 'a50e009732b650216d95d65df203043dfe6b30942788081d7834023180ae3ce6', '2026-03-31 10:18:23'),
+(41, 11, 'ce9b9792bf32f0490a2c70c85ae455c9cb16779c73ddf1bea204f531156f46e9', '2026-03-31 11:10:30'),
+(45, 20, '0da8157673aec9c7b23e036bab6d7baed3afac553f50cd85b310079ac4329634', '2026-04-06 21:41:01');
 
 -- --------------------------------------------------------
 
@@ -434,7 +481,9 @@ CREATE TABLE `tags` (
 CREATE TABLE `topics` (
   `id` bigint(20) NOT NULL,
   `title` varchar(255) NOT NULL,
+  `description` text,
   `author_id` bigint(20) DEFAULT NULL,
+  `category_id` bigint(20) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `status` enum('open','closed','archived') DEFAULT 'open'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -443,27 +492,29 @@ CREATE TABLE `topics` (
 -- Дамп данных таблицы `topics`
 --
 
-INSERT INTO `topics` (`id`, `title`, `author_id`, `status`) VALUES
-(1, 'Accusantium vel harum minima.', 3, 'open'),
-(2, 'Harum eum exercitationem ducimus officia.', 10, 'open'),
-(3, 'Cum reprehenderit natus qui praesentium optio quia.', 8, 'open'),
-(4, 'Aut nam velit dolor maiores exercitationem amet nihil.', 1, 'open'),
-(5, 'Voluptate consequuntur sint harum nihil tempora.', 10, 'open'),
-(6, 'Est eius nesciunt soluta pariatur autem.', 6, 'open'),
-(7, 'Eos architecto est quia quia.', 1, 'open'),
-(8, 'Ea et quia nihil laborum quis sequi modi.', 1, 'open'),
-(9, 'Nihil tempora itaque quibusdam aut.', 1, 'open'),
-(10, 'Autem natus facere sit tenetur id repellat.', 1, 'open'),
-(11, 'In eveniet accusantium ut iste hic illo.', 2, 'open'),
-(12, 'Saepe dolores minus quos.', 8, 'open'),
-(13, 'Esse ratione sapiente perferendis et.', 5, 'open'),
-(14, 'Nemo aut officia et soluta corrupti.', 6, 'open'),
-(15, 'Aliquam sed enim ut quibusdam nihil.', 3, 'open'),
-(16, 'Laboriosam quod quis blanditiis tempore quo quia.', 7, 'open'),
-(17, 'Et enim tenetur blanditiis nobis sint.', 2, 'open'),
-(18, 'Dolore neque commodi fugit atque deserunt et.', 6, 'open'),
-(19, 'Voluptas quibusdam sunt omnis facere.', 1, 'open'),
-(20, 'Quas natus quae est excepturi ut quod sed.', 6, 'open');
+INSERT INTO `topics` (`id`, `title`, `description`, `author_id`, `category_id`, `status`) VALUES
+(1, 'Accusantium vel harum minima.', NULL, 3, NULL, 'open'),
+(2, 'Harum eum exercitationem ducimus officia.', NULL, 10, NULL, 'open'),
+(3, 'Cum reprehenderit natus qui praesentium optio quia.', NULL, 8, NULL, 'open'),
+(4, 'Aut nam velit dolor maiores exercitationem amet nihil.', NULL, 1, NULL, 'open'),
+(5, 'Voluptate consequuntur sint harum nihil tempora.', NULL, 10, NULL, 'open'),
+(6, 'Est eius nesciunt soluta pariatur autem.', NULL, 6, NULL, 'open'),
+(7, 'Eos architecto est quia quia.', NULL, 1, NULL, 'open'),
+(8, 'Ea et quia nihil laborum quis sequi modi.', NULL, 1, NULL, 'open'),
+(9, 'Nihil tempora itaque quibusdam aut.', NULL, 1, NULL, 'open'),
+(10, 'Autem natus facere sit tenetur id repellat.', NULL, 1, NULL, 'open'),
+(11, 'In eveniet accusantium ut iste hic illo.', NULL, 2, NULL, 'open'),
+(12, 'Saepe dolores minus quos.', NULL, 8, NULL, 'open'),
+(13, 'Esse ratione sapiente perferendis et.', NULL, 5, NULL, 'open'),
+(14, 'Nemo aut officia et soluta corrupti.', NULL, 6, NULL, 'open'),
+(15, 'Aliquam sed enim ut quibusdam nihil.', NULL, 3, NULL, 'open'),
+(16, 'Laboriosam quod quis blanditiis tempore quo quia.', NULL, 7, NULL, 'open'),
+(17, 'Et enim tenetur blanditiis nobis sint.', NULL, 2, NULL, 'open'),
+(18, 'Dolore neque commodi fugit atque deserunt et.', NULL, 6, NULL, 'open'),
+(19, 'Voluptas quibusdam sunt omnis facere.', NULL, 1, NULL, 'open'),
+(20, 'Quas natus quae est excepturi ut quod sed.', NULL, 6, NULL, 'open'),
+(22, 'Что думаете о потомке BS2 Dead Red Hood', 'Скоро она выдет что думаете об этом?', 20, NULL, NULL),
+(23, '12131231231', '131231231231', 20, NULL, 'open');
 
 -- --------------------------------------------------------
 
@@ -483,27 +534,35 @@ CREATE TABLE `users` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `last_failed_at` datetime DEFAULT NULL,
   `two_factor_secret` varchar(64) DEFAULT NULL,
-  `two_factor_enabled` tinyint(1) NOT NULL DEFAULT '0'
+  `two_factor_enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `email_confirmed` tinyint(1) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Дамп данных таблицы `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `status`, `failed_attempts`, `locked_until`, `last_failed_at`, `two_factor_secret`, `two_factor_enabled`) VALUES
-(1, 'wknyzeva', 'abramova.dary@example.com', '$2y$10$06mVxDshrHTcnWVAiKhGquQKsMdBnAtY9DH0ASZtUkiANrajgC.82', 'active', 0, NULL, NULL, NULL, 0),
-(2, 'gerasimov.yroslava', 'polina62@example.com', '$2y$10$/2a/QT9GkHLbR2DY3w9svufuQ9itjWgV8lUIR7A2ZAs5M4oVucwcC', 'active', 0, NULL, NULL, NULL, 0),
-(3, 'lidiy56', 'davydov.rozalina@example.net', '$2y$10$UlDG2eKXaFwTdunjJijP1ePwj9vxsCbKDlXAi1Ru7cPzarpv1e/7m', 'active', 0, NULL, NULL, NULL, 0),
-(4, 'malvina65', 'hbragin@example.org', '$2y$10$ZjBrY88fdegTZhiVGvdAwuGJ82k/MAjCNTFtPjQpxdJbCvCTnWgei', 'active', 0, NULL, NULL, NULL, 0),
-(5, 'zlata.orlov', 'mgureva@example.com', '$2y$10$Au.bCH8pvYOVZ2J73jKwJ.a3QlHEFNQC50tUyg9w6Wjny4GxDy.ZG', 'active', 0, NULL, NULL, NULL, 0),
-(6, 'ksoloveva', 'filatov.ignatii@example.net', '$2y$10$msMM55HDQiYe4QQ4VRImWekFr8X2tBTQAeuCpCxWP4c4WYKOVd4Qe', 'active', 0, NULL, NULL, NULL, 0),
-(7, 'izabella.subbotina', 'grigorii78@example.org', '$2y$10$wDb.QpB6Ly0.e//dGLIagesW8QkTqi/v5o5JQd1vgemrRpJj1edGK', 'active', 0, NULL, NULL, NULL, 0),
-(8, 'vera.vasileva', 'tnekrasova@example.org', '$2y$10$m70fdd02oJcJF9pqr5044OtxlZWr6lcQ5Q9wS004OIn6uaupXGitK', 'active', 0, NULL, NULL, NULL, 0),
-(9, 'vadim.eliseev', 'wzimin@example.net', '$2y$10$ps90Hv0VTFWx4FFhsYwkG.D7bMcOLkGhpvlDnXWvB8xNOO22/n1Qa', 'active', 0, NULL, NULL, NULL, 0),
-(10, 'lysy22', 'vikentii.nikiforov@example.net', '$2y$10$IpKkQHsWIOyw2xVJNwZ0MODCgpztG9UwfHzdb82oNs/HrZWxh/lgG', 'active', 0, NULL, NULL, NULL, 0),
-(11, 'rede', 'rede@gmail.com', '$2y$10$SDLh3rseqt6LAnzCQt1vA.Zii4raJTywldipW1muYqBhv5/T7MoVq', 'active', 0, NULL, NULL, NULL, 0),
-(12, 'Rimet', 'Rimet@gmail.com', '$2y$10$NWHzTj00ZuQ0sKM5qGyfyu/Rqn8iG8SK2WghslOthhDvkA8VEz2oa', 'active', 0, NULL, NULL, NULL, 0),
-(13, 'КАМЫШ', 'rede1@gmail.com', '$2y$10$K3bGgmTFseDv510qGZllq.KzqceSUMB7xNAuBjk4BQhUZhClZ52yi', 'active', 0, NULL, NULL, NULL, 0);
+INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `status`, `failed_attempts`, `locked_until`, `last_failed_at`, `two_factor_secret`, `two_factor_enabled`, `email_confirmed`) VALUES
+(1, 'wknyzeva', 'abramova.dary@example.com', '$2y$10$06mVxDshrHTcnWVAiKhGquQKsMdBnAtY9DH0ASZtUkiANrajgC.82', 'active', 0, NULL, NULL, NULL, 0, 0),
+(2, 'gerasimov.yroslava', 'polina62@example.com', '$2y$10$/2a/QT9GkHLbR2DY3w9svufuQ9itjWgV8lUIR7A2ZAs5M4oVucwcC', 'active', 0, NULL, NULL, NULL, 0, 0),
+(3, 'lidiy56', 'davydov.rozalina@example.net', '$2y$10$UlDG2eKXaFwTdunjJijP1ePwj9vxsCbKDlXAi1Ru7cPzarpv1e/7m', 'active', 0, NULL, NULL, NULL, 0, 0),
+(4, 'malvina65', 'hbragin@example.org', '$2y$10$ZjBrY88fdegTZhiVGvdAwuGJ82k/MAjCNTFtPjQpxdJbCvCTnWgei', 'active', 0, NULL, NULL, NULL, 0, 0),
+(5, 'zlata.orlov', 'mgureva@example.com', '$2y$10$Au.bCH8pvYOVZ2J73jKwJ.a3QlHEFNQC50tUyg9w6Wjny4GxDy.ZG', 'active', 0, NULL, NULL, NULL, 0, 0),
+(6, 'ksoloveva', 'filatov.ignatii@example.net', '$2y$10$msMM55HDQiYe4QQ4VRImWekFr8X2tBTQAeuCpCxWP4c4WYKOVd4Qe', 'active', 0, NULL, NULL, NULL, 0, 0),
+(7, 'izabella.subbotina', 'grigorii78@example.org', '$2y$10$wDb.QpB6Ly0.e//dGLIagesW8QkTqi/v5o5JQd1vgemrRpJj1edGK', 'active', 0, NULL, NULL, NULL, 0, 0),
+(8, 'vera.vasileva', 'tnekrasova@example.org', '$2y$10$m70fdd02oJcJF9pqr5044OtxlZWr6lcQ5Q9wS004OIn6uaupXGitK', 'active', 0, NULL, NULL, NULL, 0, 0),
+(9, 'vadim.eliseev', 'wzimin@example.net', '$2y$10$ps90Hv0VTFWx4FFhsYwkG.D7bMcOLkGhpvlDnXWvB8xNOO22/n1Qa', 'active', 0, NULL, NULL, NULL, 0, 0),
+(10, 'lysy22', 'vikentii.nikiforov@example.net', '$2y$10$IpKkQHsWIOyw2xVJNwZ0MODCgpztG9UwfHzdb82oNs/HrZWxh/lgG', 'active', 0, NULL, NULL, NULL, 0, 0),
+(11, 'Raymet', 'rede@gmail.com', '$2y$10$SDLh3rseqt6LAnzCQt1vA.Zii4raJTywldipW1muYqBhv5/T7MoVq', 'active', 0, NULL, NULL, NULL, 0, 0),
+(12, 'Rimet', 'Rimet@gmail.com', '$2y$10$NWHzTj00ZuQ0sKM5qGyfyu/Rqn8iG8SK2WghslOthhDvkA8VEz2oa', 'active', 0, NULL, NULL, NULL, 0, 0),
+(13, 'КАМЫШ', 'rede1@gmail.com', '$2y$10$K3bGgmTFseDv510qGZllq.KzqceSUMB7xNAuBjk4BQhUZhClZ52yi', 'active', 0, NULL, NULL, NULL, 0, 0),
+(14, '123', 'doctorimet@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$NzNrTlZRQkFHSnNRcE5SNQ$MVLoSgC9cuyZOAaqDBmlWSA/6gYinUUVpZ/wt2MvWhc', 'active', 0, NULL, NULL, NULL, 0, 0),
+(15, 'risword', 'Ris@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$UGtPbXkucnJ4NWVxSkRscg$LnynweDzHO/p2DeDR7+W0LANTdbAgxchhHI7uVGc4tM', 'active', 0, NULL, NULL, NULL, 0, 0),
+(16, 'riswo', 'Riss@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$cEpRYkxLUVNERHgzMWxabw$dn8aVD3slolPRgurmgNGFzxu1wn8SsiqlRx3SLakMW4', 'active', 0, NULL, NULL, NULL, 0, 0),
+(17, 'riswo1', 'Riss1@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$dndaN3JXRlBJYVlsWVJ3eA$3fSwf92BmFbDAi7fNz21a/iKLVTtPRwwTDEB2gN+V+o', 'active', 0, NULL, NULL, NULL, 0, 0),
+(18, 'Rimet1', 'Rimet1@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$Y0NPQVJWeE5QRERYUUZXbQ$W2NpX11IOZXha/a0dEPkNZsODm2aKjiFW6fj0/YFLJo', 'active', 0, NULL, NULL, NULL, 0, 1),
+(19, 'Rimet11', 'Rimet11@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$VFNPRFJlYWVueW9xY05sWg$J2/8TNeHMWviCSpIRWOsu7z2+E/MJ0kFtEKiJxqhH4c', 'active', 0, NULL, NULL, NULL, 0, 1),
+(20, 'ридиска', 'ridis@gmail.com', '$argon2id$v=19$m=65536,t=4,p=1$M050RFVCZWJrempJOWxmbA$Sqpm3yI5WYBNSSqjXQ3qhM5Rf7FchceFPHBUVZFnBWY', 'active', 0, NULL, NULL, NULL, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -533,6 +592,13 @@ CREATE TABLE `user_profiles` (
   `bio` text
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
+--
+-- Дамп данных таблицы `user_profiles`
+--
+
+INSERT INTO `user_profiles` (`user_id`, `first_name`, `last_name`, `avatar_url`, `bio`) VALUES
+(11, NULL, NULL, 'https://avatars.mds.yandex.net/i?id=e5e5e817930bf7f2f3d40b0ff051659e_l-5219773-images-thumbs&n=13', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -543,6 +609,20 @@ CREATE TABLE `user_roles` (
   `user_id` bigint(20) NOT NULL,
   `role_id` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Дамп данных таблицы `user_roles`
+--
+
+INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
+(14, 1),
+(15, 1),
+(16, 1),
+(17, 1),
+(11, 3),
+(18, 3),
+(19, 3),
+(20, 3);
 
 --
 -- Индексы сохранённых таблиц
@@ -587,6 +667,12 @@ ALTER TABLE `drafts`
   ADD KEY `author_id` (`author_id`);
 
 --
+-- Индексы таблицы `email_confirmations`
+--
+ALTER TABLE `email_confirmations`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Индексы таблицы `filters`
 --
 ALTER TABLE `filters`
@@ -618,6 +704,14 @@ ALTER TABLE `navigation_sections`
 --
 ALTER TABLE `notifications`
   ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Индексы таблицы `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
   ADD KEY `user_id` (`user_id`);
 
 --
@@ -663,14 +757,6 @@ ALTER TABLE `search_index`
 ALTER TABLE `sessions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
-
---
--- Индексы таблицы `password_resets`
---
-ALTER TABLE `password_resets`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD UNIQUE KEY `token` (`token`);
 
 --
 -- Индексы таблицы `tags`
@@ -725,6 +811,12 @@ ALTER TABLE `categories`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT для таблицы `comments`
+--
+ALTER TABLE `comments`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT для таблицы `complaints`
 --
 ALTER TABLE `complaints`
@@ -735,6 +827,12 @@ ALTER TABLE `complaints`
 --
 ALTER TABLE `drafts`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT для таблицы `email_confirmations`
+--
+ALTER TABLE `email_confirmations`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблицы `filters`
@@ -761,10 +859,16 @@ ALTER TABLE `notifications`
   MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT для таблицы `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT для таблицы `posts`
 --
 ALTER TABLE `posts`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
 -- AUTO_INCREMENT для таблицы `post_files`
@@ -794,13 +898,7 @@ ALTER TABLE `search_index`
 -- AUTO_INCREMENT для таблицы `sessions`
 --
 ALTER TABLE `sessions`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
-
---
--- AUTO_INCREMENT для таблицы `password_resets`
---
-ALTER TABLE `password_resets`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
 
 --
 -- AUTO_INCREMENT для таблицы `tags`
@@ -812,13 +910,13 @@ ALTER TABLE `tags`
 -- AUTO_INCREMENT для таблицы `topics`
 --
 ALTER TABLE `topics`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT для таблицы `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT для таблицы `user_lists`
@@ -895,6 +993,12 @@ ALTER TABLE `notifications`
   ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
+-- Ограничения внешнего ключа таблицы `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
 -- Ограничения внешнего ключа таблицы `posts`
 --
 ALTER TABLE `posts`
@@ -919,12 +1023,6 @@ ALTER TABLE `post_history`
 --
 ALTER TABLE `sessions`
   ADD CONSTRAINT `sessions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-
---
--- Ограничения внешнего ключа таблицы `password_resets`
---
-ALTER TABLE `password_resets`
-  ADD CONSTRAINT `password_resets_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
 -- Ограничения внешнего ключа таблицы `topics`

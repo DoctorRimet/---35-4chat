@@ -1,0 +1,5 @@
+# Security: Prevent script execution in uploads directory
+php_flag engine off
+<FilesMatch "\.(php|phtml|php3|php4|php5|php6|php7|phps|pht|phar)$">
+    Deny from all
+</FilesMatch>

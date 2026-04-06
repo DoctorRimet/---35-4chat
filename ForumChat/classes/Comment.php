@@ -6,6 +6,7 @@ class Comment {
     public $id;
     public $post_id;
     public $author_id;
+    public $parent_comment_id;
     public $content;
     public $created_at;
     public $updated_at;
@@ -16,23 +17,27 @@ class Comment {
     }
 
     public function create() {
-        $sql = 'INSERT INTO ' . $this->table . ' (post_id, author_id, content, deleted) VALUES (:post_id, :author_id, :content, 0)';
+        $sql = 'INSERT INTO ' . $this->table . ' (post_id, author_id, parent_comment_id, content, deleted) VALUES (:post_id, :author_id, :parent_comment_id, :content, 0)';
         $stmt = $this->conn->prepare($sql);
 
         $this->content = htmlspecialchars(strip_tags($this->content));
 
         $stmt->bindParam(':post_id', $this->post_id);
         $stmt->bindParam(':author_id', $this->author_id);
+        $stmt->bindParam(':parent_comment_id', $this->parent_comment_id);
         $stmt->bindParam(':content', $this->content);
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            $this->id = $this->conn->lastInsertId();
+            return true;
+        }
+        return false;
     }
 
     public function getByPostId($post_id) {
         $sql = 'SELECT c.*, u.username FROM ' . $this->table . ' c
                 JOIN users u ON u.id = c.author_id
-                WHERE c.post_id = :post_id
-                  AND c.deleted = 0
+                WHERE c.post_id = :post_id AND c.deleted = 0
                 ORDER BY c.created_at ASC';
 
         $stmt = $this->conn->prepare($sql);
@@ -40,6 +45,18 @@ class Comment {
         $stmt->execute();
 
         return $stmt;
+    }
+
+    public function getById($id) {
+        $sql = 'SELECT c.*, u.username FROM ' . $this->table . ' c
+                JOIN users u ON u.id = c.author_id
+                WHERE c.id = :id LIMIT 1';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getByUserId($user_id) {
@@ -94,5 +111,31 @@ class Comment {
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         return $row ? (int) $row['total'] : 0;
+    }
+
+    public function update() {
+        $sql = 'UPDATE ' . $this->table . ' SET
+                content = :content
+                WHERE id = :id';
+
+        $stmt = $this->conn->prepare($sql);
+
+        $this->content = htmlspecialchars(strip_tags($this->content));
+
+        $stmt->bindParam(':content', $this->content);
+        $stmt->bindParam(':id', $this->id);
+
+        return $stmt->execute();
+    }
+
+    public function delete($id) {
+        $sql = 'UPDATE ' . $this->table . '
+                SET deleted = 1
+                WHERE id = :id';
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id);
+
+        return $stmt->execute();
     }
 }
