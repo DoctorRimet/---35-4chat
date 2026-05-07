@@ -13,7 +13,7 @@ ForumChat — форум для общения пользователей. По�
 
 ## Установка и запуск
 1. Клонируйте репозиторий:git clone https://github.com/DoctorRimet/---35-4chat.git
-2. 2. Скопируйте папку в OpenServer/domains/
+2. Скопируйте папку в OpenServer/domains/
 3. Создайте базу данных и импортируйте database.sql
 4. Настройте config/database.php
 5. Откройте http://localhost/ForumChat/
