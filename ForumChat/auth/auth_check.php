@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 $has_session = isset($_SESSION['user_id']) || (isset($_SESSION['guest']) && $_SESSION['guest'] === true);
@@ -8,4 +9,3 @@ if (!$has_session) {
     header('Location: ' . $base . '/auth/login.php');
     exit;
 }
-?>

@@ -1,91 +1,95 @@
 <?php
 
-class AdminManager {
+class AdminManager
+{
     private $conn;
     private $table = 'admin_actions';
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
     }
 
     /**
      * Получить все действия админов
      */
-    public function getAllActions($limit = 50, $offset = 0, $filters = []) {
+    public function getAllActions($limit = 50, $offset = 0, $filters = [])
+    {
         $sql = "SELECT aa.*, u.username as admin_name, p.content as post_content
                 FROM {$this->table} aa
                 LEFT JOIN users u ON u.id = aa.admin_id
                 LEFT JOIN posts p ON p.id = aa.target_id AND aa.target_type = 'post'
                 WHERE 1=1";
-        
+
         $params = [];
-        
+
         if (!empty($filters['admin_id'])) {
             $sql .= " AND aa.admin_id = :admin_id";
             $params[':admin_id'] = $filters['admin_id'];
         }
-        
+
         if (!empty($filters['action_type'])) {
             $sql .= " AND aa.action_type = :action_type";
             $params[':action_type'] = $filters['action_type'];
         }
-        
+
         if (!empty($filters['target_type'])) {
             $sql .= " AND aa.target_type = :target_type";
             $params[':target_type'] = $filters['target_type'];
         }
-        
+
         if (!empty($filters['from_date'])) {
             $sql .= " AND aa.created_at >= :from_date";
             $params[':from_date'] = $filters['from_date'];
         }
-        
+
         if (!empty($filters['to_date'])) {
             $sql .= " AND aa.created_at <= :to_date";
             $params[':to_date'] = $filters['to_date'];
         }
-        
+
         $sql .= " ORDER BY aa.created_at DESC LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->conn->prepare($sql);
-        
+
         foreach ($params as $key => $value) {
             $stmt->bindParam($key, $value);
         }
-        
+
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Получить количество действий
      */
-    public function getActionsCount($filters = []) {
+    public function getActionsCount($filters = [])
+    {
         $sql = "SELECT COUNT(*) as count FROM {$this->table} aa WHERE 1=1";
-        
+
         if (!empty($filters['admin_id'])) {
             $sql .= " AND aa.admin_id = :admin_id";
         }
-        
+
         if (!empty($filters['action_type'])) {
             $sql .= " AND aa.action_type = :action_type";
         }
-        
+
         $stmt = $this->conn->prepare($sql);
-        
+
         if (!empty($filters['admin_id'])) {
             $stmt->bindParam(':admin_id', $filters['admin_id']);
         }
-        
+
         if (!empty($filters['action_type'])) {
             $stmt->bindParam(':action_type', $filters['action_type']);
         }
-        
+
         $stmt->execute();
-        
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['count'] ?? 0;
     }
@@ -93,7 +97,8 @@ class AdminManager {
     /**
      * Получить действия админа
      */
-    public function getAdminActions($admin_id, $limit = 50, $offset = 0) {
+    public function getAdminActions($admin_id, $limit = 50, $offset = 0)
+    {
         $sql = "SELECT aa.*, p.content, u.username as target_user 
                 FROM {$this->table} aa
                 LEFT JOIN posts p ON p.id = aa.target_id AND aa.target_type = 'post'
@@ -101,20 +106,21 @@ class AdminManager {
                 WHERE aa.admin_id = :admin_id
                 ORDER BY aa.created_at DESC
                 LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':admin_id', $admin_id);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Получить статистику по типам действий
      */
-    public function getActionStats($days = 7) {
+    public function getActionStats($days = 7)
+    {
         $sql = "SELECT 
                     action_type,
                     COUNT(*) as count
@@ -122,18 +128,19 @@ class AdminManager {
                 WHERE created_at >= DATE_SUB(NOW(), INTERVAL :days DAY)
                 GROUP BY action_type
                 ORDER BY count DESC";
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':days', $days, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Получить статистику по админам
      */
-    public function getAdminStats($days = 7) {
+    public function getAdminStats($days = 7)
+    {
         $sql = "SELECT 
                     u.id,
                     u.username,
@@ -144,18 +151,19 @@ class AdminManager {
                 WHERE u.user_role IN ('admin', 'moderator')
                 GROUP BY u.id
                 ORDER BY action_count DESC";
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':days', $days, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Получить описание для типа действия
      */
-    public function getActionDescription($action_type, $details = null) {
+    public function getActionDescription($action_type, $details = null)
+    {
         $descriptions = [
             'post_mark_delete' => 'Пост отмечен на удаление',
             'post_delete' => 'Пост удален',
@@ -168,20 +176,21 @@ class AdminManager {
             'forbidden_word_add' => 'Добавлено запрещённое слово',
             'forbidden_word_delete' => 'Удалено запрещённое слово'
         ];
-        
+
         $description = $descriptions[$action_type] ?? 'Неизвестное действие';
-        
+
         if ($details) {
             $description .= ': ' . $details;
         }
-        
+
         return $description;
     }
 
     /**
      * Получить сводку действий за период
      */
-    public function getSummaryReport($from_date, $to_date) {
+    public function getSummaryReport($from_date, $to_date)
+    {
         $report = [
             'period' => "$from_date to $to_date",
             'total_actions' => 0,
@@ -191,7 +200,7 @@ class AdminManager {
             'affected_posts' => 0,
             'affected_users' => 0
         ];
-        
+
         // Общее количество действий
         $countSql = "SELECT COUNT(*) as count FROM {$this->table} 
                     WHERE created_at BETWEEN :from AND :to";
@@ -201,7 +210,7 @@ class AdminManager {
         $countStmt->execute();
         $result = $countStmt->fetch(PDO::FETCH_ASSOC);
         $report['total_actions'] = $result['count'] ?? 0;
-        
+
         // По типам
         $typeSql = "SELECT action_type, COUNT(*) as count FROM {$this->table}
                    WHERE created_at BETWEEN :from AND :to
@@ -211,7 +220,7 @@ class AdminManager {
         $typeStmt->bindParam(':to', $to_date);
         $typeStmt->execute();
         $report['actions_by_type'] = $typeStmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         // По админам
         $adminSql = "SELECT u.username, COUNT(aa.id) as count FROM {$this->table} aa
                     JOIN users u ON u.id = aa.admin_id
@@ -223,7 +232,7 @@ class AdminManager {
         $adminStmt->bindParam(':to', $to_date);
         $adminStmt->execute();
         $report['top_admins'] = $adminStmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         // Затронутые посты
         $postsSql = "SELECT COUNT(DISTINCT target_id) as count FROM {$this->table}
                     WHERE target_type = 'post' AND created_at BETWEEN :from AND :to";
@@ -233,7 +242,7 @@ class AdminManager {
         $postsStmt->execute();
         $result = $postsStmt->fetch(PDO::FETCH_ASSOC);
         $report['affected_posts'] = $result['count'] ?? 0;
-        
+
         // Затронутые пользователи
         $usersSql = "SELECT COUNT(DISTINCT target_id) as count FROM {$this->table}
                     WHERE target_type = 'user' AND created_at BETWEEN :from AND :to";
@@ -243,14 +252,15 @@ class AdminManager {
         $usersStmt->execute();
         $result = $usersStmt->fetch(PDO::FETCH_ASSOC);
         $report['affected_users'] = $result['count'] ?? 0;
-        
+
         return $report;
     }
 
     /**
      * Получить историю модераций (последние 90 дней)
      */
-    public function getModerationLog($limit = 50, $offset = 0, $filters = []) {
+    public function getModerationLog($limit = 50, $offset = 0, $filters = [])
+    {
         $sql = "SELECT ml.*, 
                        m.username as moderator_name,
                        t.username as target_username,
@@ -263,36 +273,36 @@ class AdminManager {
                 LEFT JOIN topics tp ON tp.id = p.topic_id AND ml.target_type = 'post'
                 LEFT JOIN comments c ON c.id = ml.target_id AND ml.target_type = 'comment'
                 WHERE ml.created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)";
-        
+
         $params = [];
-        
+
         if (!empty($filters['moderator_id'])) {
             $sql .= " AND ml.moderator_id = :moderator_id";
             $params[':moderator_id'] = $filters['moderator_id'];
         }
-        
+
         if (!empty($filters['action'])) {
             $sql .= " AND ml.action = :action";
             $params[':action'] = $filters['action'];
         }
-        
+
         if (!empty($filters['target_type'])) {
             $sql .= " AND ml.target_type = :target_type";
             $params[':target_type'] = $filters['target_type'];
         }
-        
+
         if (!empty($filters['from_date'])) {
             $sql .= " AND ml.created_at >= :from_date";
             $params[':from_date'] = $filters['from_date'];
         }
-        
+
         if (!empty($filters['to_date'])) {
             $sql .= " AND ml.created_at <= :to_date";
             $params[':to_date'] = $filters['to_date'];
         }
-        
+
         $sql .= " ORDER BY ml.created_at DESC LIMIT :limit OFFSET :offset";
-        
+
         $stmt = $this->conn->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
@@ -300,50 +310,51 @@ class AdminManager {
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
-        
+
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /**
      * Получить количество записей в логе модераций
      */
-    public function getModerationLogCount($filters = []) {
+    public function getModerationLogCount($filters = [])
+    {
         $sql = "SELECT COUNT(*) as count FROM moderation_log 
                 WHERE created_at >= DATE_SUB(NOW(), INTERVAL 90 DAY)";
-        
+
         $params = [];
-        
+
         if (!empty($filters['moderator_id'])) {
             $sql .= " AND moderator_id = :moderator_id";
             $params[':moderator_id'] = $filters['moderator_id'];
         }
-        
+
         if (!empty($filters['action'])) {
             $sql .= " AND action = :action";
             $params[':action'] = $filters['action'];
         }
-        
+
         if (!empty($filters['target_type'])) {
             $sql .= " AND target_type = :target_type";
             $params[':target_type'] = $filters['target_type'];
         }
-        
+
         if (!empty($filters['from_date'])) {
             $sql .= " AND created_at >= :from_date";
             $params[':from_date'] = $filters['from_date'];
         }
-        
+
         if (!empty($filters['to_date'])) {
             $sql .= " AND created_at <= :to_date";
             $params[':to_date'] = $filters['to_date'];
         }
-        
+
         $stmt = $this->conn->prepare($sql);
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value);
         }
         $stmt->execute();
-        
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result['count'] ?? 0;
     }
@@ -351,7 +362,8 @@ class AdminManager {
     /**
      * Получить пользователей с информацией о банах
      */
-    public function getUsersWithBanInfo($limit = 50, $offset = 0, $filters = []) {
+    public function getUsersWithBanInfo($limit = 50, $offset = 0, $filters = [])
+    {
         $sql = "SELECT id, username, email, user_role, status, ban_until, ban_reason, created_at, updated_at
                 FROM users
                 WHERE 1=1";
@@ -383,5 +395,3 @@ class AdminManager {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-
-?>

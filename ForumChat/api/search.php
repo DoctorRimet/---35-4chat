@@ -1,4 +1,5 @@
 <?php
+
 header('Content-Type: application/json; charset=utf-8');
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
@@ -19,15 +20,15 @@ try {
 
     // Параметры поиска
     $query = isset($_GET['q']) ? trim($_GET['q']) : '';
-    
+
     // Сохранить поиск в историю для авторизованных пользователей
     if (!$is_guest && !empty($query)) {
         $searchHistory->addSearch($_SESSION['user_id'], $query);
     }
-    
+
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
     $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-    
+
     // Параметры фильтрации
     $sortBy = isset($_GET['sort']) ? $_GET['sort'] : 'date_desc';
     $authorId = isset($_GET['author']) ? (int)$_GET['author'] : 0;
@@ -152,7 +153,7 @@ try {
     if (!$stmt) {
         throw new Exception('SQL prepare error: ' . implode(', ', $conn->errorInfo()));
     }
-    
+
     $stmt->bindParam(1, $searchTerm, PDO::PARAM_STR);
     $stmt->bindParam(2, $searchTerm, PDO::PARAM_STR);
     $stmt->bindParam(3, $searchTerm, PDO::PARAM_STR);
@@ -162,7 +163,7 @@ try {
     if (!$stmt->execute()) {
         throw new Exception('SQL execute error: ' . implode(', ', $stmt->errorInfo()));
     }
-    
+
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Подсветка найденных слов в результатах
@@ -194,15 +195,14 @@ try {
             'min_replies' => $minReplies
         ]
     ], JSON_UNESCAPED_UNICODE);
-
 } catch (Exception $e) {
     http_response_code(500);
-    
+
     // Логируем ошибку
     $logFile = __DIR__ . '/../search_api_errors.log';
     $logMessage = date('Y-m-d H:i:s') . ' | Error: ' . $e->getMessage() . ' | Query: ' . json_encode($_GET) . "\n";
     @file_put_contents($logFile, $logMessage, FILE_APPEND);
-    
+
     echo json_encode([
         'success' => false,
         'error' => 'Ошибка при выполнении поиска',
@@ -218,14 +218,15 @@ try {
  * @param string $search Поисковый запрос
  * @return string Текст с подсвеченными словами
  */
-function highlightText($text, $search) {
+function highlightText($text, $search)
+{
     if (empty($text) || empty($search)) {
         return $text;
     }
 
     // Регулярное выражение для поиска (без учета регистра)
     $pattern = '/(' . preg_quote($search, '/') . ')/iu';
-    
+
     // Заменяем найденные слова на выделенные версии
     $highlighted = preg_replace(
         $pattern,
@@ -235,4 +236,3 @@ function highlightText($text, $search) {
 
     return $highlighted;
 }
-?>

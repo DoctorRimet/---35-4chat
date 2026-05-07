@@ -88,9 +88,9 @@ body { background-color: #f0f2f5; }
                 </li>
             </ul>
             <div class="d-flex align-items-center gap-2">
-                <?php if ($currentUserAvatar): ?>
+                <?php if ($currentUserAvatar) : ?>
                     <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" class="avatar-sm" style="object-fit:cover;">
-                <?php else: ?>
+                <?php else : ?>
                     <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                 <?php endif; ?>
                 <span class="fw-semibold small"><?= $username ?></span>
@@ -114,7 +114,7 @@ body { background-color: #f0f2f5; }
                 </a>
             </div>
 
-            <?php if (empty($user_topics)): ?>
+            <?php if (empty($user_topics)) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="empty-state">
                     <i class="bi bi-bookmark display-4 d-block mb-3"></i>
@@ -124,20 +124,20 @@ body { background-color: #f0f2f5; }
                     <a href="../create.php" class="btn btn-primary mt-3">Создать тему</a>
                 </div>
             </div>
-            <?php else: ?>
+            <?php else : ?>
             <div class="d-flex flex-column gap-2">
-                <?php foreach ($user_topics as $t): ?>
-                <?php
-                $post_count = 0;
-                $status_map = ['open' => ['Открыта','success'], 'closed' => ['Закрыта','danger'], 'archived' => ['Архив','secondary']];
-                [$status_label, $status_color] = $status_map[$t['status']] ?? ['Открыта','success'];
-                $date = date('d.m.Y', strtotime($t['created_at']));
-                
-                $topicCategory = null;
-                if ($t['category_id']) {
-                    $topicCategory = $category->getById($t['category_id']);
-                }
-                ?>
+                <?php foreach ($user_topics as $t) : ?>
+                    <?php
+                    $post_count = 0;
+                    $status_map = ['open' => ['Открыта','success'], 'closed' => ['Закрыта','danger'], 'archived' => ['Архив','secondary']];
+                    [$status_label, $status_color] = $status_map[$t['status']] ?? ['Открыта','success'];
+                    $date = date('d.m.Y', strtotime($t['created_at']));
+
+                    $topicCategory = null;
+                    if ($t['category_id']) {
+                        $topicCategory = $category->getById($t['category_id']);
+                    }
+                    ?>
                 <div class="card topic-card" onclick="window.location='topic.php?id=<?= $t['id'] ?>'">
                     <div class="card-body py-3 px-3">
                         <div class="d-flex align-items-start gap-3">
@@ -148,10 +148,10 @@ body { background-color: #f0f2f5; }
                                             <?= htmlspecialchars($t['title']) ?>
                                         </a>
                                     </h6>
-                                    <?php if (!empty($t['is_pinned'])): ?>
+                                    <?php if (!empty($t['is_pinned'])) : ?>
                                         <span class="badge bg-warning text-dark" title="Закреплённая тема">Закреплено</span>
                                     <?php endif; ?>
-                                    <?php if ($topicCategory): ?>
+                                    <?php if ($topicCategory) : ?>
                                         <a href="index.php?category=<?= $topicCategory['id'] ?>" class="badge bg-info bg-opacity-10 text-info text-decoration-none">
                                             <i class="bi bi-folder me-1"></i><?= htmlspecialchars($topicCategory['name']) ?>
                                         </a>
@@ -160,7 +160,7 @@ body { background-color: #f0f2f5; }
                                 </div>
                                 <div class="text-muted small">
                                     <i class="bi bi-calendar3 me-1"></i><?= $date ?>
-                                    <?php if (!empty($t['description'])): ?>
+                                    <?php if (!empty($t['description'])) : ?>
                                         <br><small><?= htmlspecialchars(substr($t['description'], 0, 100)) ?>...</small>
                                     <?php endif; ?>
                                 </div>
@@ -175,13 +175,13 @@ body { background-color: #f0f2f5; }
             </div>
 
             <!-- Пагинация -->
-            <?php if ($totalPages > 1): ?>
+                <?php if ($totalPages > 1) : ?>
             <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination pagination-sm justify-content-center">
                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                         <a class="page-link" href="?page=<?= $page - 1 ?>"><i class="bi bi-chevron-left"></i></a>
                     </li>
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
                         <li class="page-item <?= $i === $page ? 'active' : '' ?>">
                             <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
                         </li>
@@ -191,7 +191,7 @@ body { background-color: #f0f2f5; }
                     </li>
                 </ul>
             </nav>
-            <?php endif; ?>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
 
@@ -200,9 +200,9 @@ body { background-color: #f0f2f5; }
                 <div class="card-body">
                     <div class="section-title mb-3">Мой профиль</div>
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <?php if ($currentUserAvatar): ?>
+                        <?php if ($currentUserAvatar) : ?>
                             <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-                        <?php else: ?>
+                        <?php else : ?>
                             <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;font-weight:700;flex-shrink:0;">
                                 <?= mb_strtoupper(mb_substr($username, 0, 1)) ?>
                             </div>

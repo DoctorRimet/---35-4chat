@@ -81,14 +81,14 @@ body { background-color: #f0f2f5; }
                     <a href="profile.php" class="btn btn-sm btn-outline-primary">Назад в профиль</a>
                 </div>
 
-                <?php if (empty($userPosts)): ?>
+                <?php if (empty($userPosts)) : ?>
                 <div class="text-center text-muted py-5">
                     <i class="bi bi-chat-left-text display-4 mb-3"></i>
                     <p class="mb-0">У вас пока нет опубликованных постов.</p>
                 </div>
-                <?php else: ?>
+                <?php else : ?>
                 <div class="d-flex flex-column gap-3">
-                    <?php foreach ($userPosts as $postItem): ?>
+                    <?php foreach ($userPosts as $postItem) : ?>
                     <div class="activity-item">
                         <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
                             <div class="min-w-0">

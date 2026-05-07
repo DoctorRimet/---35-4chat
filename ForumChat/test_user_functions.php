@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Тестовый скрипт для проверки пользовательских функций (версия 2.0)
- * 
+ *
  * Использование:
  * 1. Поместить в корень проекта
  * 2. Открыть в браузере: http://forum.local/test_user_functions.php
@@ -63,7 +64,7 @@ $user_id = 1; // Используем пользователя с ID 1 для т
                 <div class="mt-2">
                     <p><strong>Результат:</strong> ✅ Успешно</p>
                     <p><strong>Найдено тем:</strong> <span class="badge bg-primary"><?= $count ?></span></p>
-                    <?php if ($count > 0): ?>
+                    <?php if ($count > 0) : ?>
                     <p><strong>Первая тема:</strong> <?= htmlspecialchars($topics[0]['title']) ?></p>
                     <?php endif; ?>
                 </div>
@@ -124,7 +125,7 @@ $user_id = 1; // Используем пользователя с ID 1 для т
                 <div class="mt-2">
                     <p><strong>Результат:</strong> ✅ Успешно</p>
                     <p><strong>Найдено ответов:</strong> <span class="badge bg-primary"><?= $count ?></span></p>
-                    <?php if ($count > 0): ?>
+                    <?php if ($count > 0) : ?>
                     <p><strong>Связанная тема:</strong> <?= htmlspecialchars($posts[0]['topic_title'] ?? 'N/A') ?></p>
                     <?php endif; ?>
                 </div>
@@ -213,7 +214,7 @@ $user_id = 1; // Используем пользователя с ID 1 для т
                 <div class="mt-2">
                     <p><strong>Результат:</strong> ✅ Успешно</p>
                     <p><strong>Найдено поисков:</strong> <span class="badge bg-primary"><?= count($history) ?></span></p>
-                    <?php if (!empty($history)): ?>
+                    <?php if (!empty($history)) : ?>
                     <p><strong>Последний поиск:</strong> "<?= htmlspecialchars($history[0]['query']) ?>" - <?= $history[0]['last_search'] ?></p>
                     <?php endif; ?>
                 </div>
@@ -245,7 +246,7 @@ $user_id = 1; // Используем пользователя с ID 1 для т
                 <div class="mt-2">
                     <p><strong>Результат:</strong> ✅ Успешно</p>
                     <p><strong>Найдено уникальных поисков:</strong> <span class="badge bg-primary"><?= count($topSearches) ?></span></p>
-                    <?php if (!empty($topSearches)): ?>
+                    <?php if (!empty($topSearches)) : ?>
                     <p><strong>Топ поиск:</strong> "<?= htmlspecialchars($topSearches[0]['query']) ?>" (<?= $topSearches[0]['search_count'] ?> раз)</p>
                     <?php endif; ?>
                 </div>
@@ -277,9 +278,9 @@ $user_id = 1; // Используем пользователя с ID 1 для т
                 <p class="card-text">Проверка наличия таблицы в БД</p>
                 <div class="mt-2">
                     <p><strong>Результат:</strong> <?= $tableExists ? '✅ Существует' : '❌ Не найдена' ?></p>
-                    <?php if ($tableExists): ?>
+                    <?php if ($tableExists) : ?>
                     <p><strong>Статус:</strong> <span class="badge bg-success">Готова к использованию</span></p>
-                    <?php else: ?>
+                    <?php else : ?>
                     <p><strong>Примечание:</strong> Таблица будет создана при первом сохранении поиска</p>
                     <?php endif; ?>
                 </div>

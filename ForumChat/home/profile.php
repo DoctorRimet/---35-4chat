@@ -42,14 +42,14 @@ if ($isOwnProfile && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $usernameInput = trim($_POST['username'] ?? $userInfo['username'] ?? '');
     $email = trim($_POST['email'] ?? $userInfo['email'] ?? '');
     $avatarUrlInput = trim($_POST['avatar_url'] ?? '');
-    
+
     // Handle avatar file upload
     if (isset($_FILES['avatar_file'])) {
         $file = $_FILES['avatar_file'];
         if ($file['error'] === UPLOAD_ERR_OK) {
             $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $maxSize = 2 * 1024 * 1024; // 2MB
-            
+
             if (!in_array($file['type'], $allowedTypes)) {
                 $errors[] = 'Аватар должен быть изображением (JPEG, PNG, GIF, WebP).';
             } elseif ($file['size'] > $maxSize) {
@@ -249,7 +249,7 @@ body { background-color: #f0f2f5; }
                 <li class="nav-item">
                     <a class="nav-link" href="../notifications.php">
                         <i class="bi bi-bell me-1"></i>Сообщения
-                        <?php if ($unread_count > 0): ?>
+                        <?php if ($unread_count > 0) : ?>
                             <span class="badge bg-danger ms-1"><?php echo $unread_count; ?></span>
                         <?php endif; ?>
                     </a>
@@ -259,25 +259,25 @@ body { background-color: #f0f2f5; }
                         <i class="bi bi-person me-1"></i>Профиль
                     </a>
                 </li>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <li class="nav-item">
                     <a class="nav-link" href="../create.php">
                         <i class="bi bi-plus-circle me-1"></i>Создать тему
                     </a>
                 </li>
-                <?php if (in_array($currentUserRole, ['admin', 'moderator'])): ?>
+                    <?php if (in_array($currentUserRole, ['admin', 'moderator'])) : ?>
                 <li class="nav-item">
                     <a class="nav-link text-primary fw-semibold" href="../admin_panel.php">
                         <i class="bi bi-shield-check me-1"></i>Модерация
                     </a>
                 </li>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </ul>
             <div class="d-flex align-items-center gap-2">
-                <?php if ($avatarUrl): ?>
+                <?php if ($avatarUrl) : ?>
                     <img src="<?= htmlspecialchars($avatarUrl) ?>?t=<?= time() ?>" alt="Аватар пользователя" class="avatar-image" style="width:40px;height:40px;">
-                <?php else: ?>
+                <?php else : ?>
                     <div class="profile-avatar" style="width:40px;height:40px;font-size:18px;">
                         <?= htmlspecialchars(mb_strtoupper(mb_substr($profileTitle, 0, 1))) ?>
                     </div>
@@ -299,16 +299,16 @@ body { background-color: #f0f2f5; }
         <div class="col-lg-4">
             <div class="card profile-card p-4">
                 <div class="text-center mb-4">
-                    <?php if ($avatarUrl): ?>
+                    <?php if ($avatarUrl) : ?>
                         <img src="<?= htmlspecialchars($avatarUrl) ?>?t=<?= time() ?>" alt="Аватар пользователя" class="avatar-image mb-3">
-                    <?php else: ?>
+                    <?php else : ?>
                         <div class="profile-avatar mb-3"><?= htmlspecialchars(mb_strtoupper(mb_substr($profileTitle, 0, 1))) ?></div>
                     <?php endif; ?>
                     <h4 class="fw-bold mb-1"><?= htmlspecialchars($profileTitle) ?></h4>
                     <p class="text-muted small mb-2">Регистрация: <?= htmlspecialchars($joinedAt) ?></p>
                     <span class="badge badge-status bg-primary bg-opacity-10 text-primary">Роль: <?= htmlspecialchars($viewedUserRole) ?></span>
                 </div>
-                <?php if (!empty($profile['bio'])): ?>
+                <?php if (!empty($profile['bio'])) : ?>
                 <div class="mb-3">
                     <h6 class="fw-semibold">О себе</h6>
                     <p class="text-muted small mb-0"><?= nl2br(htmlspecialchars($profile['bio'])) ?></p>
@@ -323,7 +323,7 @@ body { background-color: #f0f2f5; }
                 </div>
 
                 <!-- Кнопки для авторизованных пользователей -->
-                <?php if ($isOwnProfile && !$is_guest): ?>
+                <?php if ($isOwnProfile && !$is_guest) : ?>
                 <div class="d-grid gap-2">
                     <a href="../pages/my_topics.php" class="btn btn-primary btn-sm">
                         <i class="bi bi-bookmark me-1"></i>Мои темы
@@ -335,7 +335,7 @@ body { background-color: #f0f2f5; }
                 <?php endif; ?>
                 
                 <!-- Кнопка жалобы на пользователя -->
-                <?php if ($loggedIn && !$isOwnProfile && $viewedUserId !== $currentUserId): ?>
+                <?php if ($loggedIn && !$isOwnProfile && $viewedUserId !== $currentUserId) : ?>
                 <div class="d-grid gap-2">
                     <button type="button" class="btn btn-outline-warning btn-sm" data-bs-toggle="modal" data-bs-target="#reportUserModal">
                         <i class="bi bi-exclamation-circle me-1"></i>Пожаловаться на пользователя
@@ -351,7 +351,7 @@ body { background-color: #f0f2f5; }
                 <p class="text-muted small mb-0">Список ваших последних публикаций и общий обзор поведения на форуме.</p>
             </div>
 
-            <?php if ($isOwnProfile): ?>
+            <?php if ($isOwnProfile) : ?>
             <div class="card activity-card p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <div>
@@ -366,13 +366,13 @@ body { background-color: #f0f2f5; }
                     </div>
                 </div>
                 <div class="collapse <?= empty($_POST) ? '' : 'show' ?>" id="profileEditBlock">
-                    <?php if ($success): ?>
+                    <?php if ($success) : ?>
                     <div class="alert alert-success mb-3"><?= htmlspecialchars($success) ?></div>
                     <?php endif; ?>
-                    <?php if (!empty($errors)): ?>
+                    <?php if (!empty($errors)) : ?>
                     <div class="alert alert-danger mb-3">
                         <ul class="mb-0">
-                            <?php foreach ($errors as $error): ?>
+                            <?php foreach ($errors as $error) : ?>
                                 <li><?= htmlspecialchars($error) ?></li>
                             <?php endforeach; ?>
                         </ul>
@@ -415,7 +415,7 @@ body { background-color: #f0f2f5; }
                     </form>
                 </div>
             </div>
-            <?php else: ?>
+            <?php else : ?>
             <div class="card activity-card p-4 mb-4">
                 <div class="text-center">
                     <h5 class="mb-2">Просмотр профиля</h5>
@@ -434,14 +434,14 @@ body { background-color: #f0f2f5; }
                     <span class="text-muted small">Всего: <?= $postCount ?></span>
                 </div>
 
-                <?php if (empty($userPosts)): ?>
+                <?php if (empty($userPosts)) : ?>
                 <div class="card activity-card p-4 text-center text-muted">
                     <i class="bi bi-chat-left-text display-4 mb-3"></i>
                     <p class="mb-0">У вас пока нет опубликованных постов.</p>
                 </div>
-                <?php else: ?>
+                <?php else : ?>
                 <div class="d-flex flex-column gap-3">
-                    <?php foreach ($userPosts as $postItem): ?>
+                    <?php foreach ($userPosts as $postItem) : ?>
                     <div class="activity-item">
                         <div class="d-flex align-items-start justify-content-between gap-3">
                             <div class="min-w-0">
@@ -454,11 +454,11 @@ body { background-color: #f0f2f5; }
                     </div>
                     <?php endforeach; ?>
                 </div>
-                <?php if ($postCount > 3): ?>
+                    <?php if ($postCount > 3) : ?>
                 <div class="mt-3 text-end">
                     <a href="profile_posts.php" class="btn btn-sm btn-outline-primary">Посмотреть все посты</a>
                 </div>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
 
@@ -470,14 +470,14 @@ body { background-color: #f0f2f5; }
                     </div>
                     <span class="badge bg-secondary bg-opacity-10 text-secondary">Всего: <?= $commentCount ?></span>
                 </div>
-                <?php if (empty($userComments)): ?>
+                <?php if (empty($userComments)) : ?>
                 <div class="text-center text-muted py-4">
                     <i class="bi bi-chat-left-text display-4 mb-3"></i>
                     <p class="mb-0">Вы ещё не оставили комментариев.</p>
                 </div>
-                <?php else: ?>
+                <?php else : ?>
                 <div class="d-flex flex-column gap-3">
-                    <?php foreach ($userComments as $entry): ?>
+                    <?php foreach ($userComments as $entry) : ?>
                     <div class="activity-item">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div>
@@ -490,11 +490,11 @@ body { background-color: #f0f2f5; }
                     </div>
                     <?php endforeach; ?>
                 </div>
-                <?php if ($commentCount > 3): ?>
+                    <?php if ($commentCount > 3) : ?>
                 <div class="mt-3 text-end">
                     <a href="profile_comments.php" class="btn btn-sm btn-outline-primary">Посмотреть все комментарии</a>
                 </div>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>

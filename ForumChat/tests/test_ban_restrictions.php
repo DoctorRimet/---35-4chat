@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../classes/User.php';
 
@@ -46,9 +47,7 @@ try {
     echo "- Заблокированные пользователи могут входить в систему\n";
     echo "- При попытке создать контент показывается предупреждение\n";
     echo "- Создание контента блокируется на уровне PHP\n";
-
 } catch (Exception $e) {
     echo "✗ Критическая ошибка: " . $e->getMessage() . "\n";
 }
 echo "</pre>";
-?>

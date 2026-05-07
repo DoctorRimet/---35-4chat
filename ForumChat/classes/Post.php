@@ -1,6 +1,7 @@
 <?php
-class Post {
 
+class Post
+{
     private $conn;
     private $table = 'posts';
     private $autoModerator;
@@ -18,7 +19,8 @@ class Post {
     public $hidden_at;
     public $moderation_result;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
         $this->autoModerator = null;
     }
@@ -26,11 +28,13 @@ class Post {
     /**
      * Установить экземпляр AutoModerator для проверки на запрещённые слова
      */
-    public function setAutoModerator($autoModerator) {
+    public function setAutoModerator($autoModerator)
+    {
         $this->autoModerator = $autoModerator;
     }
 
-    public function create() {
+    public function create()
+    {
 
         $sql = 'INSERT INTO ' . $this->table . '
             (topic_id, author_id, content, status, deleted)
@@ -48,7 +52,7 @@ class Post {
 
         if ($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
-            
+
             // Проверяем содержимое на запрещённые слова если установлен AutoModerator
             if ($this->autoModerator && $this->status === 'published') {
                 $this->moderation_result = $this->autoModerator->checkPostOnCreate(
@@ -57,14 +61,15 @@ class Post {
                     $this->author_id
                 );
             }
-            
+
             return true;
         }
 
         return false;
     }
 
-    public function getAll() {
+    public function getAll()
+    {
 
         $sql = 'SELECT * FROM ' . $this->table . '
                 WHERE deleted = 0 AND status = \'published\'
@@ -76,7 +81,8 @@ class Post {
         return $stmt;
     }
 
-    public function getById($id) {
+    public function getById($id)
+    {
 
         $sql = 'SELECT * FROM ' . $this->table . '
                 WHERE id = :id LIMIT 1';
@@ -101,11 +107,12 @@ class Post {
         return false;
     }
 
-    public function getByTopicId($topic_id, $current_user_id = null) {
+    public function getByTopicId($topic_id, $current_user_id = null)
+    {
         // Базовая видимость для всех
         $sql = 'SELECT * FROM ' . $this->table . '
                 WHERE topic_id = :topic_id AND deleted = 0 AND status = \'published\'';
-        
+
         // Если текущий пользователь не админ/модератор, исключаем скрытые посты
         // (кроме собственных постов автора)
         if ($current_user_id) {
@@ -135,7 +142,8 @@ class Post {
         return $stmt;
     }
 
-    public function update() {
+    public function update()
+    {
 
         $sql = 'UPDATE ' . $this->table . ' SET
                 content = :content
@@ -159,11 +167,12 @@ class Post {
             }
             return true;
         }
-        
+
         return false;
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
 
         $sql = 'UPDATE ' . $this->table . '
                 SET deleted = 1
@@ -175,7 +184,8 @@ class Post {
         return $stmt->execute();
     }
 
-    public function getDraftsByAuthor($author_id) {
+    public function getDraftsByAuthor($author_id)
+    {
         $sql = 'SELECT * FROM ' . $this->table . '
                 WHERE author_id = :author_id AND status = \'draft\' AND deleted = 0
                 ORDER BY updated_at DESC';
@@ -186,7 +196,8 @@ class Post {
         return $stmt;
     }
 
-    public function saveDraft($topic_id, $author_id, $content) {
+    public function saveDraft($topic_id, $author_id, $content)
+    {
         // Check if draft already exists for this topic and author
         $sql = 'SELECT id FROM ' . $this->table . '
                 WHERE topic_id = :topic_id AND author_id = :author_id AND status = \'draft\' AND deleted = 0
@@ -213,7 +224,8 @@ class Post {
         }
     }
 
-    public function publishDraft($id) {
+    public function publishDraft($id)
+    {
         $sql = 'UPDATE ' . $this->table . '
                 SET status = \'published\'
                 WHERE id = :id AND status = \'draft\'';
@@ -224,17 +236,18 @@ class Post {
     }
 
     // Получить посты (ответы) пользователя
-    public function getByUserId($user_id, $limit = null) {
+    public function getByUserId($user_id, $limit = null)
+    {
         $sql = "SELECT p.*, t.title as topic_title, t.id as topic_id
                 FROM {$this->table} p
                 JOIN topics t ON t.id = p.topic_id
                 WHERE p.author_id = :user_id AND p.deleted = 0 AND p.status = 'published'
                 ORDER BY p.created_at DESC";
-        
+
         if ($limit) {
             $sql .= " LIMIT :limit";
         }
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         if ($limit) {
@@ -245,7 +258,8 @@ class Post {
     }
 
     // Получить количество постов (ответов) пользователя
-    public function getCountByUserId($user_id) {
+    public function getCountByUserId($user_id)
+    {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} 
                 WHERE author_id = :user_id AND deleted = 0 AND status = 'published'";
         $stmt = $this->conn->prepare($sql);
@@ -255,4 +269,3 @@ class Post {
         return (int)($result['total'] ?? 0);
     }
 }
-?>

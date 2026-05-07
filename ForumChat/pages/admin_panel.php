@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Ошибка при добавлении слова';
             }
             break;
-            
+
         case 'delete_forbidden_word':
             $word_id = $_POST['word_id'] ?? 0;
             if ($forbiddenWords->removeWord($word_id)) {
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Ошибка при удалении слова';
             }
             break;
-            
+
         case 'hide_post':
             $post_id = $_POST['post_id'] ?? 0;
             if ($postModeration->hidePost($post_id, 'Скрыто администратором')) {
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Ошибка при скрытии поста';
             }
             break;
-            
+
         case 'unhide_post':
             $post_id = $_POST['post_id'] ?? 0;
             if ($postModeration->unhidePost($post_id, $user_id)) {
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Ошибка при восстановлении поста';
             }
             break;
-            
+
         case 'delete_post':
             $post_id = $_POST['post_id'] ?? 0;
             if ($postModeration->deletePost($post_id, $user_id)) {
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Ошибка при удалении поста';
             }
             break;
-            
+
         case 'unhide_from_admin':
             // Убрать скрытие с поста из админ панели
             $post_id = $_POST['post_id'] ?? 0;
@@ -121,12 +121,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Ошибка при открытии поста';
             }
             break;
-            
+
         case 'delete_from_admin':
             // Удалить пост из админ панели
             $post_id = $_POST['post_id'] ?? 0;
             $delete_reason = trim($_POST['delete_reason'] ?? 'Пост нарушает правила сообщества');
-            
+
             if ($postModeration->deletePost($post_id, $user_id, $delete_reason)) {
                 header('Location: admin_panel.php?tab=hidden_posts&success=deleted');
                 exit;
@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
             $target_user_id = $_POST['user_id'] ?? 0;
             $duration = $_POST['duration'] ?? '';
             $reason = trim($_POST['reason'] ?? '');
-            
+
             if ($target_user_id && $duration) {
                 if ($userClass->banUser($target_user_id, $user_id, $duration, $reason)) {
                     $message = 'Пользователь заблокирован';
@@ -155,10 +155,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action) {
                 $error = 'Неверные параметры блокировки';
             }
             break;
-            
+
         case 'unban_user':
             $target_user_id = $_POST['user_id'] ?? 0;
-            
+
             if ($target_user_id) {
                 if ($userClass->unbanUser($target_user_id, $user_id)) {
                     $message = 'Пользователь разблокирован';
@@ -211,13 +211,13 @@ $currentUserAvatar = '';
 if (!$is_guest && isset($_SESSION['user_id'])) {
     $currentUserData = $userClass->getById($_SESSION['user_id']);
     $currentUserProfile = $userClass->getProfile($_SESSION['user_id']);
-    
+
     // Ensure profile exists
     if (!$currentUserProfile) {
         $userClass->updateProfile($_SESSION['user_id'], null, null, null, null);
         $currentUserProfile = $userClass->getProfile($_SESSION['user_id']);
     }
-    
+
     $currentUserAvatar = $currentUserProfile['avatar_url'] ?? $currentUserData['avatar_url'] ?? '';
 }
 
@@ -326,11 +326,11 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <i class="bi bi-house me-1"></i>Главная
                     </a>
                 </li>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <li class="nav-item">
                     <a class="nav-link" href="../notifications.php">
                         <i class="bi bi-bell me-1"></i>Сообщения
-                        <?php if ($unread_count > 0): ?>
+                        <?php if ($unread_count > 0) : ?>
                             <span class="badge bg-danger ms-1"><?php echo $unread_count; ?></span>
                         <?php endif; ?>
                     </a>
@@ -345,29 +345,29 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <i class="bi bi-plus-circle me-1"></i>Создать тему
                     </a>
                 </li>
-                <?php if (in_array($userRole, ['admin', 'moderator'])): ?>
+                    <?php if (in_array($userRole, ['admin', 'moderator'])) : ?>
                 <li class="nav-item">
                     <a class="nav-link active text-primary fw-semibold" href="admin_panel.php">
                         <i class="bi bi-shield-check me-1"></i>Модерация
                     </a>
                 </li>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
-                <?php if (!$is_guest && $currentUserAvatar): ?>
+                <?php if (!$is_guest && $currentUserAvatar) : ?>
                     <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" class="avatar-sm" style="object-fit:cover;">
-                <?php else: ?>
+                <?php else : ?>
                     <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                 <?php endif; ?>
                 <span class="fw-semibold small"><?= $username ?></span>
-                <?php if ($is_guest): ?>
+                <?php if ($is_guest) : ?>
                     <span class="badge bg-secondary">Гость</span>
                     <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                     </a>
-                <?php else:
+                <?php else :
                     $roleLabel = 'Участник';
                     $badgeClass = 'bg-success bg-opacity-10 text-success';
                     if ($userRole === 'moderator') {
@@ -377,7 +377,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         $roleLabel = 'Админ';
                         $badgeClass = 'bg-primary bg-opacity-10 text-primary';
                     }
-                ?>
+                    ?>
                     <span class="badge <?= $badgeClass ?>"><?= $roleLabel ?></span>
                     <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
@@ -389,14 +389,14 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
 </nav>
 
 <div class="container-fluid py-4">
-        <?php if ($message): ?>
+        <?php if ($message) : ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle"></i> <?php echo htmlspecialchars($message); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
-        <?php if ($error): ?>
+        <?php if ($error) : ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                 <i class="fas fa-exclamation-circle"></i> <?php echo htmlspecialchars($error); ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -438,7 +438,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <a href="admin_panel.php?tab=complaints" 
                            class="nav-link <?php echo $tab === 'complaints' ? 'active' : ''; ?>">
                             <i class="bi bi-exclamation-circle me-2"></i>Жалобы
-                            <?php if ($pendingComplaints > 0): ?>
+                            <?php if ($pendingComplaints > 0) : ?>
                                 <span class="badge bg-danger ms-2"><?= $pendingComplaints ?></span>
                             <?php endif; ?>
                         </a>
@@ -450,7 +450,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
             <div class="col-md-9">
                 <div class="content p-4">
                     <!-- ТАБЛИЦА УПРАВЛЕНИЯ (DASHBOARD) -->
-                    <?php if ($tab === 'dashboard'): ?>
+                    <?php if ($tab === 'dashboard') : ?>
                         <h2 class="mb-4">
                             <i class="fas fa-chart-line"></i> Панель управления
                         </h2>
@@ -508,14 +508,14 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <tbody>
                                     <?php
                                     $stats = $adminManager->getActionStats(7);
-                                    if (!empty($stats)):
-                                        foreach ($stats as $stat):
-                                    ?>
+                                    if (!empty($stats)) :
+                                        foreach ($stats as $stat) :
+                                            ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($stat['action_type']); ?></td>
                                             <td><span class="badge bg-primary"><?php echo $stat['count']; ?></span></td>
                                         </tr>
-                                    <?php
+                                            <?php
                                         endforeach;
                                     endif;
                                     ?>
@@ -538,9 +538,9 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <tbody>
                                     <?php
                                     $adminStats = $adminManager->getAdminStats(7);
-                                    if (!empty($adminStats)):
-                                        foreach ($adminStats as $admin):
-                                    ?>
+                                    if (!empty($adminStats)) :
+                                        foreach ($adminStats as $admin) :
+                                            ?>
                                         <tr>
                                             <td>
                                                 <i class="fas fa-user"></i>
@@ -548,7 +548,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             </td>
                                             <td><span class="badge bg-info"><?php echo $admin['action_count']; ?></span></td>
                                         </tr>
-                                    <?php
+                                            <?php
                                         endforeach;
                                     endif;
                                     ?>
@@ -557,7 +557,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
 
                     <!-- ВКЛАДКА СКРЫТЫХ ПОСТОВ -->
-                    <?php elseif ($tab === 'hidden_posts'): ?>
+                    <?php elseif ($tab === 'hidden_posts') : ?>
                         <h2 class="mb-4">
                             <i class="fas fa-eye-slash"></i> Скрытые посты
                         </h2>
@@ -588,9 +588,9 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                     ");
                                     $hiddenStmt->execute();
                                     $hiddenPosts = $hiddenStmt->fetchAll(PDO::FETCH_ASSOC);
-                                    
-                                    foreach ($hiddenPosts as $hp):
-                                    ?>
+
+                                    foreach ($hiddenPosts as $hp) :
+                                        ?>
                                     <tr>
                                         <td><?= htmlspecialchars($hp['id']) ?></td>
                                         <td><?= htmlspecialchars($hp['username']) ?></td>
@@ -629,7 +629,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
 
                     <!-- ВКЛАДКА УДАЛЕНИЙ -->
-                    <?php elseif ($tab === 'deletions'): ?>
+                    <?php elseif ($tab === 'deletions') : ?>
                         <h2 class="mb-4">
                             <i class="fas fa-trash"></i> Управление удалениями 
                         </h2>
@@ -650,9 +650,9 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <tbody>
                                     <?php
                                     $deletions = $postModeration->getActiveDeletionMarks(50);
-                                    if (!empty($deletions)):
-                                        foreach ($deletions as $deletion):
-                                    ?>
+                                    if (!empty($deletions)) :
+                                        foreach ($deletions as $deletion) :
+                                            ?>
                                         <tr>
                                             <td><?php echo $deletion['post_id']; ?></td>
                                             <td>
@@ -661,16 +661,16 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             <td><?php echo htmlspecialchars($deletion['username']); ?></td>
                                             <td><?php echo htmlspecialchars($deletion['reason']); ?></td>
                                             <td>
-                                                <?php if ($deletion['hidden']): ?>
+                                                <?php if ($deletion['hidden']) : ?>
                                                     <span class="badge bg-danger">Скрыт</span>
-                                                <?php else: ?>
+                                                <?php else : ?>
                                                     <span class="badge bg-warning">Отмечен</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <?php if ($deletion['scheduled_delete_at']): ?>
+                                                <?php if ($deletion['scheduled_delete_at']) : ?>
                                                     <small class="text-muted">Запланировано: <?php echo substr($deletion['scheduled_delete_at'], 0, 10); ?></small>
-                                                <?php else: ?>
+                                                <?php else : ?>
                                                     <small class="text-muted">Ручное удаление</small>
                                                 <?php endif; ?>
                                             </td>
@@ -692,10 +692,10 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </form>
                                             </td>
                                         </tr>
-                                    <?php
+                                            <?php
                                         endforeach;
-                                    else:
-                                    ?>
+                                    else :
+                                        ?>
                                         <tr>
                                             <td colspan="7" class="text-center text-muted py-4">
                                                 Нет отмеченных или скрытых постов
@@ -710,7 +710,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         
 
                     <!-- ВКЛАДКА ЗАПРЕЩЁННЫХ СЛОВ -->
-                    <?php elseif ($tab === 'forbidden_words'): ?>
+                    <?php elseif ($tab === 'forbidden_words') : ?>
                         <h2 class="mb-4">
                             <i class="fas fa-ban"></i> Управление запрещёнными словами
                         </h2>
@@ -745,9 +745,9 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <tbody>
                                     <?php
                                     $words = $forbiddenWords->getAllWords(50);
-                                    if (!empty($words)):
-                                        foreach ($words as $word):
-                                    ?>
+                                    if (!empty($words)) :
+                                        foreach ($words as $word) :
+                                            ?>
                                         <tr>
                                             <td><?php echo $word['id']; ?></td>
                                             <td>
@@ -765,10 +765,10 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </form>
                                             </td>
                                         </tr>
-                                    <?php
+                                            <?php
                                         endforeach;
-                                    else:
-                                    ?>
+                                    else :
+                                        ?>
                                         <tr>
                                             <td colspan="5" class="text-center text-muted py-4">
                                                 Запрещённые слова не добавлены
@@ -780,7 +780,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
 
                     <!-- ВКЛАДКА ПОЛЬЗОВАТЕЛЕЙ -->
-                    <?php elseif ($tab === 'users'): ?>
+                    <?php elseif ($tab === 'users') : ?>
                         <h2 class="mb-4">
                             <i class="fas fa-users"></i> Управление пользователями
                         </h2>
@@ -823,14 +823,18 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <tbody>
                                     <?php
                                     $filters = [];
-                                    if (!empty($_GET['username'])) $filters['username'] = $_GET['username'];
-                                    if (!empty($_GET['status'])) $filters['status'] = $_GET['status'];
-                                    
+                                    if (!empty($_GET['username'])) {
+                                        $filters['username'] = $_GET['username'];
+                                    }
+                                    if (!empty($_GET['status'])) {
+                                        $filters['status'] = $_GET['status'];
+                                    }
+
                                     $users = $adminManager->getUsersWithBanInfo(50, 0, $filters);
-                                    if (!empty($users)):
-                                        foreach ($users as $u):
+                                    if (!empty($users)) :
+                                        foreach ($users as $u) :
                                             $ban_info = $userClass->getBanInfo($u['id']);
-                                    ?>
+                                            ?>
                                         <tr>
                                             <td><?php echo $u['id']; ?></td>
                                             <td>
@@ -843,27 +847,27 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </span>
                                             </td>
                                             <td>
-                                                <?php if ($ban_info['banned']): ?>
+                                                <?php if ($ban_info['banned']) : ?>
                                                     <span class="badge bg-danger">
-                                                        <?php if ($ban_info['permanent']): ?>
+                                                        <?php if ($ban_info['permanent']) : ?>
                                                             Заблокирован
-                                                        <?php else: ?>
+                                                        <?php else : ?>
                                                             До <?php echo date('d.m.Y H:i', strtotime($ban_info['ban_until'])); ?>
                                                         <?php endif; ?>
                                                     </span>
-                                                <?php else: ?>
+                                                <?php else : ?>
                                                     <span class="badge bg-success">Активен</span>
                                                 <?php endif; ?>
                                             </td>
                                             <td><?php echo substr($u['created_at'], 0, 10); ?></td>
                                             <td>
-                                                <?php if ($u['user_role'] !== 'admin' && $current_user['user_role'] === 'admin'): ?>
-                                                    <?php if ($ban_info['banned']): ?>
+                                                <?php if ($u['user_role'] !== 'admin' && $current_user['user_role'] === 'admin') : ?>
+                                                    <?php if ($ban_info['banned']) : ?>
                                                         <button type="button" class="btn btn-success btn-sm" 
                                                                 onclick="unbanUser(<?php echo $u['id']; ?>, '<?php echo htmlspecialchars($u['username']); ?>')">
                                                             <i class="fas fa-unlock"></i> Разблокировать
                                                         </button>
-                                                    <?php else: ?>
+                                                    <?php else : ?>
                                                         <button type="button" class="btn btn-warning btn-sm" 
                                                                 onclick="showBanModal(<?php echo $u['id']; ?>, '<?php echo htmlspecialchars($u['username']); ?>')">
                                                             <i class="fas fa-ban"></i> Заблокировать
@@ -872,10 +876,10 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
-                                    <?php
+                                            <?php
                                         endforeach;
-                                    else:
-                                    ?>
+                                    else :
+                                        ?>
                                         <tr>
                                             <td colspan="7" class="text-center text-muted py-4">
                                                 Пользователи не найдены
@@ -981,7 +985,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
 
                     <!-- ВКЛАДКА ИСТОРИИ -->
-                    <?php elseif ($tab === 'activity'): ?>
+                    <?php elseif ($tab === 'activity') : ?>
                         <h2 class="mb-4">
                             <i class="fas fa-history"></i> История модерации (последние 90 дней)
                         </h2>
@@ -1064,40 +1068,70 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <tbody>
                                     <?php
                                     $filters = [];
-                                    if (!empty($_GET['moderator_id'])) $filters['moderator_id'] = $_GET['moderator_id'];
-                                    if (!empty($_GET['action'])) $filters['action'] = $_GET['action'];
-                                    if (!empty($_GET['target_type'])) $filters['target_type'] = $_GET['target_type'];
-                                    if (!empty($_GET['from_date'])) $filters['from_date'] = $_GET['from_date'] . ' 00:00:00';
-                                    if (!empty($_GET['to_date'])) $filters['to_date'] = $_GET['to_date'] . ' 23:59:59';
-                                    
+                                    if (!empty($_GET['moderator_id'])) {
+                                        $filters['moderator_id'] = $_GET['moderator_id'];
+                                    }
+                                    if (!empty($_GET['action'])) {
+                                        $filters['action'] = $_GET['action'];
+                                    }
+                                    if (!empty($_GET['target_type'])) {
+                                        $filters['target_type'] = $_GET['target_type'];
+                                    }
+                                    if (!empty($_GET['from_date'])) {
+                                        $filters['from_date'] = $_GET['from_date'] . ' 00:00:00';
+                                    }
+                                    if (!empty($_GET['to_date'])) {
+                                        $filters['to_date'] = $_GET['to_date'] . ' 23:59:59';
+                                    }
+
                                     $logs = $adminManager->getModerationLog(100, 0, $filters);
-                                    if (!empty($logs)):
-                                        foreach ($logs as $log):
-                                    ?>
+                                    if (!empty($logs)) :
+                                        foreach ($logs as $log) :
+                                            ?>
                                         <tr>
                                             <td><small><?php echo date('d.m.Y H:i', strtotime($log['created_at'])); ?></small></td>
                                             <td><?php echo htmlspecialchars($log['moderator_name'] ?? 'Неизвестен'); ?></td>
                                             <td>
                                                 <span class="badge 
-                                                    <?php 
+                                                    <?php
                                                     $actionClass = 'bg-secondary';
-                                                    switch($log['action']) {
-                                                        case 'ban': $actionClass = 'bg-danger'; break;
-                                                        case 'unban': $actionClass = 'bg-success'; break;
-                                                        case 'post_hide': $actionClass = 'bg-warning'; break;
-                                                        case 'post_unhide': $actionClass = 'bg-info'; break;
-                                                        case 'post_delete': $actionClass = 'bg-dark'; break;
+                                                    switch ($log['action']) {
+                                                        case 'ban':
+                                                            $actionClass = 'bg-danger';
+                                                            break;
+                                                        case 'unban':
+                                                            $actionClass = 'bg-success';
+                                                            break;
+                                                        case 'post_hide':
+                                                            $actionClass = 'bg-warning';
+                                                            break;
+                                                        case 'post_unhide':
+                                                            $actionClass = 'bg-info';
+                                                            break;
+                                                        case 'post_delete':
+                                                            $actionClass = 'bg-dark';
+                                                            break;
                                                     }
                                                     echo $actionClass;
                                                     ?>">
-                                                    <?php 
+                                                    <?php
                                                     $actionLabel = htmlspecialchars($log['action']);
-                                                    switch($log['action']) {
-                                                        case 'ban': $actionLabel = 'Бан'; break;
-                                                        case 'unban': $actionLabel = 'Разбан'; break;
-                                                        case 'post_hide': $actionLabel = 'Скрыть пост'; break;
-                                                        case 'post_unhide': $actionLabel = 'Показать пост'; break;
-                                                        case 'post_delete': $actionLabel = 'Удалить пост'; break;
+                                                    switch ($log['action']) {
+                                                        case 'ban':
+                                                            $actionLabel = 'Бан';
+                                                            break;
+                                                        case 'unban':
+                                                            $actionLabel = 'Разбан';
+                                                            break;
+                                                        case 'post_hide':
+                                                            $actionLabel = 'Скрыть пост';
+                                                            break;
+                                                        case 'post_unhide':
+                                                            $actionLabel = 'Показать пост';
+                                                            break;
+                                                        case 'post_delete':
+                                                            $actionLabel = 'Удалить пост';
+                                                            break;
                                                     }
                                                     echo $actionLabel;
                                                     ?>
@@ -1105,7 +1139,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             </td>
                                             <td>
                                                 <small>
-                                                    <?php 
+                                                    <?php
                                                     if ($log['target_type'] === 'user') {
                                                         echo 'Пользователь: ' . htmlspecialchars($log['target_username'] ?? 'ID:' . $log['target_id']);
                                                     } elseif ($log['target_type'] === 'post') {
@@ -1127,10 +1161,10 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 <small><?php echo htmlspecialchars($log['duration'] ?? '-'); ?></small>
                                             </td>
                                         </tr>
-                                    <?php
+                                            <?php
                                         endforeach;
-                                    else:
-                                    ?>
+                                    else :
+                                        ?>
                                         <tr>
                                             <td colspan="6" class="text-center text-muted py-4">
                                                 История модерации пуста
@@ -1142,7 +1176,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
 
                     <!-- ВКЛАДКА ЖАЛОБ -->
-                    <?php elseif ($tab === 'complaints'): ?>
+                    <?php elseif ($tab === 'complaints') : ?>
                         <h2 class="mb-4">
                             <i class="bi bi-exclamation-circle me-2"></i>Жалобы
                         </h2>
@@ -1151,22 +1185,30 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <ul class="nav nav-tabs mb-4" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-complaints" type="button">
-                                    Все жалобы <?php if ($pendingComplaints > 0): ?><span class="badge bg-danger ms-2"><?= $pendingComplaints ?></span><?php endif; ?>
+                                    Все жалобы <?php if ($pendingComplaints > 0) :
+                                        ?><span class="badge bg-danger ms-2"><?= $pendingComplaints ?></span><?php
+                                               endif; ?>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="post-tab" data-bs-toggle="tab" data-bs-target="#post-complaints" type="button">
-                                    На сообщения <?php if ($postComplaints > 0): ?><span class="badge bg-warning ms-2"><?= $postComplaints ?></span><?php endif; ?>
+                                    На сообщения <?php if ($postComplaints > 0) :
+                                        ?><span class="badge bg-warning ms-2"><?= $postComplaints ?></span><?php
+                                                 endif; ?>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="topic-tab" data-bs-toggle="tab" data-bs-target="#topic-complaints" type="button">
-                                    На темы <?php if ($topicComplaints > 0): ?><span class="badge bg-info ms-2"><?= $topicComplaints ?></span><?php endif; ?>
+                                    На темы <?php if ($topicComplaints > 0) :
+                                        ?><span class="badge bg-info ms-2"><?= $topicComplaints ?></span><?php
+                                            endif; ?>
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="user-tab" data-bs-toggle="tab" data-bs-target="#user-complaints" type="button">
-                                    На пользователей <?php if ($userComplaints > 0): ?><span class="badge bg-danger ms-2"><?= $userComplaints ?></span><?php endif; ?>
+                                    На пользователей <?php if ($userComplaints > 0) :
+                                        ?><span class="badge bg-danger ms-2"><?= $userComplaints ?></span><?php
+                                                     endif; ?>
                                 </button>
                             </li>
                         </ul>
@@ -1176,8 +1218,8 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             <div class="tab-pane fade show active" id="all-complaints" role="tabpanel">
                                 <?php
                                 $complaintsList = $complaint->getAllPending()->fetchAll(PDO::FETCH_ASSOC);
-                                if (!empty($complaintsList)):
-                                ?>
+                                if (!empty($complaintsList)) :
+                                    ?>
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-light">
@@ -1191,23 +1233,23 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($complaintsList as $c): ?>
+                                                <?php foreach ($complaintsList as $c) : ?>
                                                 <tr>
                                                     <td>
-                                                        <?php if ($c['post_id']): ?>
+                                                        <?php if ($c['post_id']) : ?>
                                                             <span class="badge bg-warning text-dark">Сообщение</span>
-                                                        <?php elseif ($c['topic_id']): ?>
+                                                        <?php elseif ($c['topic_id']) : ?>
                                                             <span class="badge bg-info text-dark">Тема</span>
-                                                        <?php elseif ($c['user_id']): ?>
+                                                        <?php elseif ($c['user_id']) : ?>
                                                             <span class="badge bg-danger">Пользователь</span>
                                                         <?php endif; ?>
                                                     </td>
                                                     <td>
-                                                        <?php if ($c['post_id']): ?>
+                                                        <?php if ($c['post_id']) : ?>
                                                             <small><?= htmlspecialchars(mb_substr($c['reason'], 0, 50)) ?>...</small>
-                                                        <?php elseif ($c['topic_id']): ?>
+                                                        <?php elseif ($c['topic_id']) : ?>
                                                             <a href="../topic.php?id=<?= $c['topic_id'] ?>" target="_blank" class="text-decoration-none"><?= htmlspecialchars($c['topic_title']) ?></a>
-                                                        <?php elseif ($c['user_id']): ?>
+                                                        <?php elseif ($c['user_id']) : ?>
                                                             <a href="../home/profile.php?id=<?= $c['user_id'] ?>" target="_blank" class="text-decoration-none"><?= htmlspecialchars($c['reported_user']) ?></a>
                                                         <?php endif; ?>
                                                     </td>
@@ -1231,7 +1273,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             </tbody>
                                         </table>
                                     </div>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <div class="alert alert-info">Нет новых жалоб</div>
                                 <?php endif; ?>
                             </div>
@@ -1240,8 +1282,8 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             <div class="tab-pane fade" id="post-complaints" role="tabpanel">
                                 <?php
                                 $postComplaintsList = $complaint->getByType('post')->fetchAll(PDO::FETCH_ASSOC);
-                                if (!empty($postComplaintsList)):
-                                ?>
+                                if (!empty($postComplaintsList)) :
+                                    ?>
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-light">
@@ -1254,7 +1296,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($postComplaintsList as $c): ?>
+                                                <?php foreach ($postComplaintsList as $c) : ?>
                                                 <tr>
                                                     <td><small><?= htmlspecialchars(mb_substr(strip_tags($c['reason']), 0, 50)) ?>...</small></td>
                                                     <td><?= htmlspecialchars($c['reason']) ?></td>
@@ -1277,7 +1319,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             </tbody>
                                         </table>
                                     </div>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <div class="alert alert-info">Нет жалоб на сообщения</div>
                                 <?php endif; ?>
                             </div>
@@ -1286,8 +1328,8 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             <div class="tab-pane fade" id="topic-complaints" role="tabpanel">
                                 <?php
                                 $topicComplaintsList = $complaint->getByType('topic')->fetchAll(PDO::FETCH_ASSOC);
-                                if (!empty($topicComplaintsList)):
-                                ?>
+                                if (!empty($topicComplaintsList)) :
+                                    ?>
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-light">
@@ -1300,7 +1342,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($topicComplaintsList as $c): ?>
+                                                <?php foreach ($topicComplaintsList as $c) : ?>
                                                 <tr>
                                                     <td><a href="../topic.php?id=<?= $c['topic_id'] ?>" target="_blank"><?= htmlspecialchars($c['topic_title']) ?></a></td>
                                                     <td><?= htmlspecialchars($c['reason']) ?></td>
@@ -1323,7 +1365,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             </tbody>
                                         </table>
                                     </div>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <div class="alert alert-info">Нет жалоб на темы</div>
                                 <?php endif; ?>
                             </div>
@@ -1332,8 +1374,8 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             <div class="tab-pane fade" id="user-complaints" role="tabpanel">
                                 <?php
                                 $userComplaintsList = $complaint->getByType('user')->fetchAll(PDO::FETCH_ASSOC);
-                                if (!empty($userComplaintsList)):
-                                ?>
+                                if (!empty($userComplaintsList)) :
+                                    ?>
                                     <div class="table-responsive">
                                         <table class="table table-hover">
                                             <thead class="table-light">
@@ -1346,7 +1388,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($userComplaintsList as $c): ?>
+                                                <?php foreach ($userComplaintsList as $c) : ?>
                                                 <tr>
                                                     <td><a href="../home/profile.php?id=<?= $c['user_id'] ?>" target="_blank"><?= htmlspecialchars($c['reported_user']) ?></a></td>
                                                     <td><?= htmlspecialchars($c['reason']) ?></td>
@@ -1369,7 +1411,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                             </tbody>
                                         </table>
                                     </div>
-                                <?php else: ?>
+                                <?php else : ?>
                                     <div class="alert alert-info">Нет жалоб на пользователей</div>
                                 <?php endif; ?>
                             </div>

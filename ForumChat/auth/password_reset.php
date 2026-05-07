@@ -78,22 +78,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && empty($errors)) {
                 <h4 class="fw-bold mb-1">Установите новый пароль</h4>
                 <p class="text-muted small mb-4">Введите новый пароль для вашей учетной записи.</p>
 
-                <?php if ($success): ?>
+                <?php if ($success) : ?>
                 <div class="alert alert-success">
                     Пароль успешно обновлен. <a href="login.php" class="alert-link">Войдите</a> с новым паролем.
                 </div>
-                <?php else: ?>
-                    <?php if (!empty($errors)): ?>
+                <?php else : ?>
+                    <?php if (!empty($errors)) : ?>
                     <div class="alert alert-danger">
                         <ul class="mb-0">
-                            <?php foreach ($errors as $error): ?>
+                            <?php foreach ($errors as $error) : ?>
                             <li><?= htmlspecialchars($error) ?></li>
                             <?php endforeach; ?>
                         </ul>
                     </div>
                     <?php endif; ?>
 
-                    <?php if ($request): ?>
+                    <?php if ($request) : ?>
                     <form method="post">
                         <div class="mb-3">
                             <label class="form-label fw-semibold small text-uppercase text-secondary" for="password">Новый пароль</label>

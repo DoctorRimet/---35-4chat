@@ -76,21 +76,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h4 class="fw-bold mb-1">Восстановление пароля</h4>
                 <p class="text-muted small mb-4">Введите email, на который зарегистрирован аккаунт.</p>
 
-                <?php if ($success): ?>
+                <?php if ($success) : ?>
                 <div class="alert alert-success">
                     Если адрес зарегистрирован, мы отправили ссылку для сброса пароля.
                 </div>
-                <?php if ($resetLink): ?>
+                    <?php if ($resetLink) : ?>
                 <div class="alert alert-secondary small">
                     Тестовая ссылка: <a href="<?= htmlspecialchars($resetLink) ?>"><?= htmlspecialchars($resetLink) ?></a>
                 </div>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
 
-                <?php if (!empty($errors)): ?>
+                <?php if (!empty($errors)) : ?>
                 <div class="alert alert-danger">
                     <ul class="mb-0">
-                        <?php foreach ($errors as $error): ?>
+                        <?php foreach ($errors as $error) : ?>
                         <li><?= htmlspecialchars($error) ?></li>
                         <?php endforeach; ?>
                     </ul>

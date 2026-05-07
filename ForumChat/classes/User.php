@@ -1,5 +1,7 @@
 <?php
-class User {
+
+class User
+{
     private $conn;
     private $table = 'users';
 
@@ -32,15 +34,18 @@ class User {
     const TOTP_WINDOW = 1;
     const TOTP_PERIOD = 30;
 
-    public static function getPasswordAlgo() {
+    public static function getPasswordAlgo()
+    {
         return defined('PASSWORD_ARGON2ID') ? PASSWORD_ARGON2ID : self::PASSWORD_ALGO;
     }
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
     }
 
-    public function create() {
+    public function create()
+    {
         $this->ensureEmailConfirmedColumnExists();
 
         $sql = "INSERT INTO {$this->table}
@@ -60,7 +65,8 @@ class User {
         return false;
     }
 
-    private function ensureEmailConfirmedColumnExists() {
+    private function ensureEmailConfirmedColumnExists()
+    {
         $stmt = $this->conn->query("SHOW COLUMNS FROM {$this->table} LIKE 'email_confirmed'");
         if ($stmt && $stmt->fetch()) {
             return true;
@@ -71,7 +77,8 @@ class User {
         return true;
     }
 
-    private function ensureEmailConfirmationsTableExists() {
+    private function ensureEmailConfirmationsTableExists()
+    {
         $stmt = $this->conn->query("SHOW TABLES LIKE 'email_confirmations'");
         if ($stmt && $stmt->fetch()) {
             $columnStmt = $this->conn->query("SHOW COLUMNS FROM email_confirmations LIKE 'id'");
@@ -106,7 +113,8 @@ class User {
         return true;
     }
 
-    public function createEmailConfirmationToken($user_id) {
+    public function createEmailConfirmationToken($user_id)
+    {
         $this->ensureEmailConfirmationsTableExists();
 
         $token = bin2hex(random_bytes(32));
@@ -119,7 +127,8 @@ class User {
         return $stmt->execute() ? $token : false;
     }
 
-    public function createEmailConfirmationTokenByEmail($email) {
+    public function createEmailConfirmationTokenByEmail($email)
+    {
         $user = $this->getByEmail($email);
         if (!$user) {
             return false;
@@ -127,7 +136,8 @@ class User {
         return $this->createEmailConfirmationToken($user['id']);
     }
 
-    public function getEmailConfirmationRequest($token) {
+    public function getEmailConfirmationRequest($token)
+    {
         $this->ensureEmailConfirmationsTableExists();
 
         $stmt = $this->conn->prepare(
@@ -144,7 +154,8 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function confirmEmailToken($token) {
+    public function confirmEmailToken($token)
+    {
         $request = $this->getEmailConfirmationRequest($token);
         if (!$request) {
             return false;
@@ -176,7 +187,8 @@ class User {
         }
     }
 
-    public function invalidateEmailConfirmationTokens($user_id) {
+    public function invalidateEmailConfirmationTokens($user_id)
+    {
         $stmt = $this->conn->prepare(
             'UPDATE email_confirmations SET used = 1 WHERE user_id = :user_id'
         );
@@ -184,11 +196,13 @@ class User {
         return $stmt->execute();
     }
 
-    public static function hashPassword($password) {
+    public static function hashPassword($password)
+    {
         return password_hash($password, self::getPasswordAlgo());
     }
 
-    public function getRoles($user_id) {
+    public function getRoles($user_id)
+    {
         $stmt = $this->conn->prepare(
             "SELECT r.name
              FROM user_roles ur
@@ -200,17 +214,20 @@ class User {
         return array_column($stmt->fetchAll(PDO::FETCH_ASSOC), 'name');
     }
 
-    public function getPrimaryRole($user_id) {
+    public function getPrimaryRole($user_id)
+    {
         $user = $this->getById($user_id);
         return $user['user_role'] ?? self::ROLE_USER;
     }
 
-    public function userHasRole($user_id, $role_name) {
+    public function userHasRole($user_id, $role_name)
+    {
         $roles = $this->getRoles($user_id);
         return in_array($role_name, $roles, true);
     }
 
-    public function assignRole($user_id, $role_name) {
+    public function assignRole($user_id, $role_name)
+    {
         $role_id = $this->getRoleIdByName($role_name);
         if (!$role_id) {
             return false;
@@ -224,7 +241,8 @@ class User {
         return $stmt->execute();
     }
 
-    public function removeRole($user_id, $role_name) {
+    public function removeRole($user_id, $role_name)
+    {
         $role_id = $this->getRoleIdByName($role_name);
         if (!$role_id) {
             return false;
@@ -237,7 +255,8 @@ class User {
         return $stmt->execute();
     }
 
-    private function getRoleIdByName($role_name) {
+    private function getRoleIdByName($role_name)
+    {
         $stmt = $this->conn->prepare("SELECT id FROM roles WHERE name = :name LIMIT 1");
         $stmt->bindParam(':name', $role_name);
         $stmt->execute();
@@ -245,7 +264,8 @@ class User {
         return $role['id'] ?? null;
     }
 
-    public function generateTwoFactorSecret($length = 16) {
+    public function generateTwoFactorSecret($length = 16)
+    {
         $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         $secret = '';
         for ($i = 0; $i < $length; $i++) {
@@ -254,7 +274,8 @@ class User {
         return $secret;
     }
 
-    private function base32Decode($secret) {
+    private function base32Decode($secret)
+    {
         $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
         $secret = strtoupper($secret);
         $paddingCharCount = substr_count($secret, '=');
@@ -276,7 +297,8 @@ class User {
         return $decoded;
     }
 
-    private function getTotpCode($secret, $timeSlice = null) {
+    private function getTotpCode($secret, $timeSlice = null)
+    {
         $secretKey = $this->base32Decode($secret);
         if ($secretKey === false) {
             return false;
@@ -289,7 +311,8 @@ class User {
         return str_pad($truncated % 1000000, 6, '0', STR_PAD_LEFT);
     }
 
-    public function verifyTwoFactorCode($secret, $code, $window = self::TOTP_WINDOW) {
+    public function verifyTwoFactorCode($secret, $code, $window = self::TOTP_WINDOW)
+    {
         if (empty($secret) || !preg_match('/^\d{6}$/', $code)) {
             return false;
         }
@@ -302,7 +325,8 @@ class User {
         return false;
     }
 
-    public function enableTwoFactor($user_id, $secret) {
+    public function enableTwoFactor($user_id, $secret)
+    {
         $stmt = $this->conn->prepare(
             "UPDATE {$this->table}
              SET two_factor_enabled = 1, two_factor_secret = :secret
@@ -313,7 +337,8 @@ class User {
         return $stmt->execute();
     }
 
-    public function disableTwoFactor($user_id) {
+    public function disableTwoFactor($user_id)
+    {
         $stmt = $this->conn->prepare(
             "UPDATE {$this->table}
              SET two_factor_enabled = 0, two_factor_secret = NULL
@@ -323,48 +348,55 @@ class User {
         return $stmt->execute();
     }
 
-    public function getAll() {
+    public function getAll()
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table}");
         $stmt->execute();
         return $stmt;
     }
 
-    public function getById($id) {
+    public function getById($id)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE id = :id LIMIT 1");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getByEmail($email) {
+    public function getByEmail($email)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE email = :email LIMIT 1");
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getByUsername($username) {
+    public function getByUsername($username)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE username = :username LIMIT 1");
         $stmt->bindParam(':username', $username);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function emailExists($email) {
+    public function emailExists($email)
+    {
         $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE email = :email LIMIT 1");
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
 
-    public function usernameExists($username) {
+    public function usernameExists($username)
+    {
         $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE username = :username LIMIT 1");
         $stmt->bindParam(':username', $username);
         $stmt->execute();
         return $stmt->rowCount() > 0;
     }
 
-    public function isUsernameTakenByOther($username, $user_id) {
+    public function isUsernameTakenByOther($username, $user_id)
+    {
         $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE username = :username AND id <> :id LIMIT 1");
         $stmt->bindParam(':username', $username);
         $stmt->bindParam(':id', $user_id);
@@ -372,11 +404,13 @@ class User {
         return $stmt->rowCount() > 0;
     }
 
-    public function verifyPassword($password, $hash) {
+    public function verifyPassword($password, $hash)
+    {
         return password_verify($password, $hash);
     }
 
-    public function isEmailTakenByOther($email, $user_id) {
+    public function isEmailTakenByOther($email, $user_id)
+    {
         $stmt = $this->conn->prepare("SELECT id FROM {$this->table} WHERE email = :email AND id <> :id LIMIT 1");
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':id', $user_id);
@@ -384,21 +418,24 @@ class User {
         return $stmt->rowCount() > 0;
     }
 
-    public function updateUsername($user_id, $username) {
+    public function updateUsername($user_id, $username)
+    {
         $stmt = $this->conn->prepare("UPDATE {$this->table} SET username = :username WHERE id = :id");
         $stmt->bindParam(':username', $username);
         $stmt->bindParam(':id', $user_id);
         return $stmt->execute();
     }
 
-    public function updateEmail($user_id, $email) {
+    public function updateEmail($user_id, $email)
+    {
         $stmt = $this->conn->prepare("UPDATE {$this->table} SET email = :email WHERE id = :id");
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':id', $user_id);
         return $stmt->execute();
     }
 
-    public function updatePassword($user_id, $password) {
+    public function updatePassword($user_id, $password)
+    {
         $hashed = self::hashPassword($password);
         $stmt = $this->conn->prepare("UPDATE {$this->table} SET password_hash = :password_hash WHERE id = :id");
         $stmt->bindParam(':password_hash', $hashed);
@@ -406,7 +443,8 @@ class User {
         return $stmt->execute();
     }
 
-    private function ensurePasswordResetsTableExists() {
+    private function ensurePasswordResetsTableExists()
+    {
         $stmt = $this->conn->query("SHOW TABLES LIKE 'password_resets'");
         if ($stmt && $stmt->fetch()) {
             return true;
@@ -429,7 +467,8 @@ class User {
         return true;
     }
 
-    public function createPasswordResetToken($user_id) {
+    public function createPasswordResetToken($user_id)
+    {
         $this->ensurePasswordResetsTableExists();
 
         $token = bin2hex(random_bytes(32));
@@ -444,7 +483,8 @@ class User {
         return $stmt->execute() ? $token : false;
     }
 
-    public function createPasswordResetTokenByEmail($email) {
+    public function createPasswordResetTokenByEmail($email)
+    {
         $user = $this->getByEmail($email);
         if (!$user) {
             return false;
@@ -452,7 +492,8 @@ class User {
         return $this->createPasswordResetToken($user['id']);
     }
 
-    public function getPasswordResetRequest($token) {
+    public function getPasswordResetRequest($token)
+    {
         $this->ensurePasswordResetsTableExists();
 
         $stmt = $this->conn->prepare(
@@ -469,7 +510,8 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function consumePasswordResetToken($token) {
+    public function consumePasswordResetToken($token)
+    {
         $stmt = $this->conn->prepare(
             'UPDATE password_resets SET used = 1 WHERE token = :token'
         );
@@ -477,7 +519,8 @@ class User {
         return $stmt->execute();
     }
 
-    public function resetPasswordByToken($token, $password) {
+    public function resetPasswordByToken($token, $password)
+    {
         $request = $this->getPasswordResetRequest($token);
         if (!$request) {
             return false;
@@ -500,7 +543,8 @@ class User {
         }
     }
 
-    public function invalidatePasswordResetTokens($user_id) {
+    public function invalidatePasswordResetTokens($user_id)
+    {
         $stmt = $this->conn->prepare(
             'UPDATE password_resets SET used = 1 WHERE user_id = :user_id'
         );
@@ -508,14 +552,16 @@ class User {
         return $stmt->execute();
     }
 
-    public function getProfile($user_id) {
+    public function getProfile($user_id)
+    {
         $stmt = $this->conn->prepare('SELECT * FROM user_profiles WHERE user_id = :user_id LIMIT 1');
         $stmt->bindParam(':user_id', $user_id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function updateProfile($user_id, $avatar_url = null, $bio = null, $first_name = null, $last_name = null) {
+    public function updateProfile($user_id, $avatar_url = null, $bio = null, $first_name = null, $last_name = null)
+    {
         $existing = $this->getProfile($user_id);
 
         if ($existing) {
@@ -542,7 +588,8 @@ class User {
         return $executed;
     }
 
-    public function update() {
+    public function update()
+    {
         $sql = "UPDATE {$this->table}
                 SET username=:username, email=:email, status=:status
                 WHERE id=:id";
@@ -554,13 +601,15 @@ class User {
         return $stmt->execute();
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE id=:id");
         $stmt->bindParam(':id', $id);
         return $stmt->execute();
     }
 
-    public function incrementFailedAttempts($id) {
+    public function incrementFailedAttempts($id)
+    {
         $user = $this->getById($id);
         if (!$user) {
             return false;
@@ -597,7 +646,8 @@ class User {
         return false;
     }
 
-    public function resetFailedAttempts($id) {
+    public function resetFailedAttempts($id)
+    {
         $stmt = $this->conn->prepare(
             "UPDATE {$this->table}
              SET failed_attempts = 0, locked_until = NULL, last_failed_at = NULL
@@ -607,18 +657,25 @@ class User {
         return $stmt->execute();
     }
 
-    public function isLocked($user) {
-        if (empty($user['locked_until'])) return false;
+    public function isLocked($user)
+    {
+        if (empty($user['locked_until'])) {
+            return false;
+        }
         return strtotime($user['locked_until']) > time();
     }
 
-    public function getLockRemainingMinutes($user) {
-        if (empty($user['locked_until'])) return 0;
+    public function getLockRemainingMinutes($user)
+    {
+        if (empty($user['locked_until'])) {
+            return 0;
+        }
         $remaining = strtotime($user['locked_until']) - time();
         return $remaining > 0 ? ceil($remaining / 60) : 0;
     }
 
-    public function countActiveSessions($user_id) {
+    public function countActiveSessions($user_id)
+    {
         $stmt = $this->conn->prepare(
             "SELECT COUNT(*) FROM sessions
              WHERE user_id = :user_id AND expires_at > NOW()"
@@ -628,7 +685,8 @@ class User {
         return (int)$stmt->fetchColumn();
     }
 
-    public function createSession($user_id, $remember = false) {
+    public function createSession($user_id, $remember = false)
+    {
         $token = bin2hex(random_bytes(32));
         $expires = $remember
             ? date('Y-m-d H:i:s', strtotime('+30 days'))
@@ -643,7 +701,8 @@ class User {
         return $token;
     }
 
-    public function validateSession($token) {
+    public function validateSession($token)
+    {
         $stmt = $this->conn->prepare(
             "SELECT s.user_id, u.username, u.email, u.status
              FROM sessions s
@@ -656,7 +715,8 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function deleteSession($token) {
+    public function deleteSession($token)
+    {
         $stmt = $this->conn->prepare("DELETE FROM sessions WHERE token = :token");
         $stmt->bindParam(':token', $token);
         return $stmt->execute();
@@ -670,19 +730,20 @@ class User {
      * @param string $reason Причина блокировки
      * @return bool
      */
-    public function banUser($user_id, $admin_id, $duration, $reason = '') {
+    public function banUser($user_id, $admin_id, $duration, $reason = '')
+    {
         // Получаем информацию о модераторе/админе
         $moderator = $this->getById($admin_id);
         if (!$moderator) {
             return false;
         }
-        
+
         // Получаем информацию о пользователе, которого пытаемся забанить
         $target_user = $this->getById($user_id);
         if (!$target_user) {
             return false;
         }
-        
+
         // Проверка прав: только админ может банить других админов и модераторов
         if ($moderator['user_role'] !== 'admin') {
             // Модератор не может банить админов
@@ -694,7 +755,7 @@ class User {
                 return false;
             }
         }
-        
+
         $ban_until = null;
 
         switch ($duration) {
@@ -731,15 +792,20 @@ class User {
 
         if ($stmt->execute()) {
             // Логируем действие
-            $this->logAdminAction($admin_id, 'user_ban', 'user', $user_id,
-                "Блокировка на $duration. Причина: $reason");
-            
+            $this->logAdminAction(
+                $admin_id,
+                'user_ban',
+                'user',
+                $user_id,
+                "Блокировка на $duration. Причина: $reason"
+            );
+
             // Записываем в moderation_log
             $this->logModerationAction($admin_id, 'ban', 'user', $user_id, $reason, $duration);
-            
+
             // Создаем уведомление пользователю
             $this->createBanNotification($user_id, $duration, $reason);
-            
+
             return true;
         }
         return false;
@@ -751,7 +817,8 @@ class User {
      * @param int $admin_id ID администратора
      * @return bool
      */
-    public function unbanUser($user_id, $admin_id) {
+    public function unbanUser($user_id, $admin_id)
+    {
         $stmt = $this->conn->prepare(
             "UPDATE {$this->table}
              SET status = 'active', ban_until = NULL, ban_reason = NULL
@@ -762,15 +829,15 @@ class User {
         if ($stmt->execute()) {
             // Логируем действие
             $this->logAdminAction($admin_id, 'user_unban', 'user', $user_id, 'Разблокировка пользователя');
-            
+
             // Записываем в moderation_log
             $this->logModerationAction($admin_id, 'unban', 'user', $user_id, 'Разблокировка пользователя');
-            
+
             // Создаем уведомление пользователю
             require_once __DIR__ . '/NotificationManager.php';
             $notificationManager = new NotificationManager($this->conn);
             $notificationManager->createNotification($user_id, 'unban', 'Ваш аккаунт разблокирован', 'success');
-            
+
             return true;
         }
         return false;
@@ -781,7 +848,8 @@ class User {
      * @param array $user Данные пользователя
      * @return bool
      */
-    public function isBanned($user) {
+    public function isBanned($user)
+    {
         if ($user['status'] === 'blocked') {
             return true;
         }
@@ -796,7 +864,8 @@ class User {
      * @param int $user_id ID пользователя
      * @return array|null
      */
-    public function getBanInfo($user_id) {
+    public function getBanInfo($user_id)
+    {
         $user = $this->getById($user_id);
         if (!$user) {
             return null;
@@ -827,7 +896,8 @@ class User {
     /**
      * Логировать действие администратора
      */
-    private function logAdminAction($admin_id, $action_type, $target_type, $target_id, $details = '') {
+    private function logAdminAction($admin_id, $action_type, $target_type, $target_id, $details = '')
+    {
         $stmt = $this->conn->prepare(
             "INSERT INTO admin_actions (admin_id, action_type, target_type, target_id, details, created_at)
              VALUES (:admin_id, :action_type, :target_type, :target_id, :details, NOW())"
@@ -843,7 +913,8 @@ class User {
     /**
      * Записать действие модерации в лог
      */
-    private function logModerationAction($moderator_id, $action, $target_type, $target_id, $reason, $duration = null) {
+    private function logModerationAction($moderator_id, $action, $target_type, $target_id, $reason, $duration = null)
+    {
         $stmt = $this->conn->prepare(
             "INSERT INTO moderation_log (moderator_id, action, target_type, target_id, reason, duration)
              VALUES (:moderator_id, :action, :target_type, :target_id, :reason, :duration)"
@@ -860,10 +931,11 @@ class User {
     /**
      * Создать уведомление о бане
      */
-    private function createBanNotification($user_id, $duration, $reason) {
+    private function createBanNotification($user_id, $duration, $reason)
+    {
         require_once __DIR__ . '/NotificationManager.php';
         $notificationManager = new NotificationManager($this->conn);
-        
+
         $message = "Ваш аккаунт заблокирован";
         if ($duration !== 'permanent') {
             $message .= " на $duration";
@@ -873,53 +945,55 @@ class User {
         if (!empty($reason)) {
             $message .= ". Причина: $reason";
         }
-        
+
         return $notificationManager->createNotification($user_id, 'ban', $message, 'warning');
     }
 
     /**
      * Создать уведомление об удалении поста
      */
-    public function notifyPostDeleted($user_id, $reason = '') {
+    public function notifyPostDeleted($user_id, $reason = '')
+    {
         require_once __DIR__ . '/NotificationManager.php';
         $notificationManager = new NotificationManager($this->conn);
-        
+
         $message = "Ваш пост был удален";
         if (!empty($reason)) {
             $message .= ". Причина: $reason";
         }
-        
+
         return $notificationManager->createNotification($user_id, 'post_deleted', $message);
     }
 
     /**
      * Создать уведомление о скрытии поста
      */
-    public function notifyPostHidden($user_id, $reason = '') {
+    public function notifyPostHidden($user_id, $reason = '')
+    {
         require_once __DIR__ . '/NotificationManager.php';
         $notificationManager = new NotificationManager($this->conn);
-        
+
         $message = "Ваш пост был скрыт";
         if (!empty($reason)) {
             $message .= ". Причина: $reason";
         }
-        
+
         return $notificationManager->createNotification($user_id, 'post_hidden', $message);
     }
 
     /**
      * Создать уведомление об удалении комментария
      */
-    public function notifyCommentDeleted($user_id, $reason = '') {
+    public function notifyCommentDeleted($user_id, $reason = '')
+    {
         require_once __DIR__ . '/NotificationManager.php';
         $notificationManager = new NotificationManager($this->conn);
-        
+
         $message = "Ваш комментарий был удален";
         if (!empty($reason)) {
             $message .= ". Причина: $reason";
         }
-        
+
         return $notificationManager->createNotification($user_id, 'comment_deleted', $message);
     }
 }
-?>

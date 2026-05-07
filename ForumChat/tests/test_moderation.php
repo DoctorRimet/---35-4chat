@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Тестовый скрипт для проверки системы модерации
  * Используйте: http://yourforum.com/test_moderation.php
@@ -7,8 +8,10 @@
 session_start();
 
 // Проверка авторизации и прав
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) || 
-    ($_SESSION['user_role'] !== 'admin' && $_SESSION['user_role'] !== 'moderator')) {
+if (
+    !isset($_SESSION['user_id']) || !isset($_SESSION['user_role']) ||
+    ($_SESSION['user_role'] !== 'admin' && $_SESSION['user_role'] !== 'moderator')
+) {
     http_response_code(403);
     echo '<h1>❌ Ошибка доступа</h1>';
     echo '<p>Доступно только администраторам и модераторам</p>';
@@ -72,10 +75,10 @@ try {
 try {
     $columns = $conn->query("DESCRIBE posts")->fetchAll(PDO::FETCH_ASSOC);
     $columnNames = array_column($columns, 'Field');
-    
+
     $requiredColumns = ['hidden', 'hidden_reason', 'hidden_at'];
     $missingColumns = array_diff($requiredColumns, $columnNames);
-    
+
     if (empty($missingColumns)) {
         $results[] = ['name' => '✅ Колонки в таблице posts существуют', 'detail' => 'hidden, hidden_reason, hidden_at'];
     } else {
@@ -98,14 +101,16 @@ try {
 try {
     $fw = new ForbiddenWords($conn);
     $fw->addWord('тестовое_слово_проверка', $_SESSION['user_id']);
-    
+
     $result = $fw->checkContentDetailed('текст с тестовое_слово_проверка внутри');
-    
+
     if ($result['has_forbidden'] && isset($result['words_found']['тестовое_слово_проверка'])) {
         $results[] = ['name' => '✅ Проверка контента на запрещённые слова', 'detail' => 'Найдено 1 нарушение'];
-        
+
         // Очищаем тестовое слово
-        $fw->removeWord(key(array_filter($fw->getAllWords(100), function($w) { return $w['word'] === 'тестовое_слово_проверка'; })));
+        $fw->removeWord(key(array_filter($fw->getAllWords(100), function ($w) {
+            return $w['word'] === 'тестовое_слово_проверка';
+        })));
     } else {
         $errors[] = ['name' => '❌ Проверка контента', 'error' => 'Слово не найдено'];
     }
@@ -152,14 +157,14 @@ try {
         'api_moderation.php',
         'init_moderation.php'
     ];
-    
+
     $missingFiles = [];
     foreach ($files as $file) {
         if (!file_exists($file)) {
             $missingFiles[] = $file;
         }
     }
-    
+
     if (empty($missingFiles)) {
         $results[] = ['name' => '✅ Все необходимые файлы присутствуют', 'detail' => count($files) . ' файл(ов)'];
     } else {
@@ -263,21 +268,21 @@ try {
     <div class="container">
         <h1>🔍 Тест системы модерации</h1>
         
-        <?php if (!empty($results)): ?>
+        <?php if (!empty($results)) : ?>
             <h3 class="mb-3">✅ Успешные проверки (<?php echo count($results); ?>)</h3>
-            <?php foreach ($results as $result): ?>
+            <?php foreach ($results as $result) : ?>
                 <div class="test-item success">
                     <div class="test-name"><?php echo $result['name']; ?></div>
-                    <?php if (isset($result['detail'])): ?>
+                    <?php if (isset($result['detail'])) : ?>
                         <div class="test-detail">📌 <?php echo $result['detail']; ?></div>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
         
-        <?php if (!empty($errors)): ?>
+        <?php if (!empty($errors)) : ?>
             <h3 class="mb-3 mt-4">❌ Ошибки (<?php echo count($errors); ?>)</h3>
-            <?php foreach ($errors as $error): ?>
+            <?php foreach ($errors as $error) : ?>
                 <div class="test-item error">
                     <div class="test-name"><?php echo $error['name']; ?></div>
                     <div class="test-error">⚠️ <?php echo $error['error']; ?></div>
@@ -290,12 +295,12 @@ try {
             <div class="progress-text">
                 <span class="progress-ok"><?php echo count($results); ?>/<?php echo count($results) + count($errors); ?></span>
             </div>
-            <?php if (empty($errors)): ?>
+            <?php if (empty($errors)) : ?>
                 <p class="text-success" style="font-size: 1.2rem;">
                     🎉 <strong>Система готова к использованию!</strong>
                 </p>
                 <p>Все компоненты работают корректно.</p>
-            <?php else: ?>
+            <?php else : ?>
                 <p class="text-danger" style="font-size: 1.2rem;">
                     ⚠️ <strong>Обнаружены проблемы</strong>
                 </p>

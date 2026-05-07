@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['comment_text'], $_PO
             $checkPostStmt = $conn->prepare("SELECT author_id, hidden FROM posts WHERE id = :post_id");
             $checkPostStmt->execute([':post_id' => $postId]);
             $checkPost = $checkPostStmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if (!$checkPost) {
                 $errors[] = 'Пост не найден.';
             } elseif ($checkPost['hidden']) {
@@ -94,16 +94,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['comment_text'], $_PO
                 } elseif ($checkPost['author_id'] == $currentUserId) {
                     $canComment = true;
                 }
-                
+
                 if (!$canComment) {
                     $errors[] = 'Этот пост скрыт. Вы не можете добавлять комментарии к скрытому посту.';
                 }
             }
-            
+
             if (empty($errors)) {
                 // Проверяем на запрещённые слова в комментарии
                 $checkResult = $forbiddenWords->checkContentDetailed($content);
-                
+
                 if ($checkResult['has_forbidden']) {
                     // Есть запрещённые слова
                     $violations_list = implode(', ', array_keys($checkResult['words_found']));
@@ -117,45 +117,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['comment_text'], $_PO
 
                     if ($commentModel->create()) {
                         $fileUploadError = false;
-                
+
                 // Handle multiple file uploads for comment (from reply form in renderComments)
-                if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
-                    for ($i = 0; $i < count($_FILES['attachments']['name']); $i++) {
-                        $file = [
-                            'name' => $_FILES['attachments']['name'][$i],
-                            'type' => $_FILES['attachments']['type'][$i],
-                            'tmp_name' => $_FILES['attachments']['tmp_name'][$i],
-                            'error' => $_FILES['attachments']['error'][$i],
-                            'size' => $_FILES['attachments']['size'][$i]
-                        ];
-                        
-                        $uploadResult = $attachmentModel->upload($file, 'comment', $commentModel->id);
-                        if (!$uploadResult['success']) {
-                            $errors[] = 'Ошибка при загрузке файла: ' . $uploadResult['error'];
-                            $fileUploadError = true;
+                        if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
+                            for ($i = 0; $i < count($_FILES['attachments']['name']); $i++) {
+                                $file = [
+                                    'name' => $_FILES['attachments']['name'][$i],
+                                    'type' => $_FILES['attachments']['type'][$i],
+                                    'tmp_name' => $_FILES['attachments']['tmp_name'][$i],
+                                    'error' => $_FILES['attachments']['error'][$i],
+                                    'size' => $_FILES['attachments']['size'][$i]
+                                ];
+
+                                $uploadResult = $attachmentModel->upload($file, 'comment', $commentModel->id);
+                                if (!$uploadResult['success']) {
+                                    $errors[] = 'Ошибка при загрузке файла: ' . $uploadResult['error'];
+                                    $fileUploadError = true;
+                                }
+                            }
                         }
-                    }
-                }
                 // Handle single file upload for comment (from main comment form)
-                elseif (isset($_FILES['comment_file']) && $_FILES['comment_file']['error'] !== UPLOAD_ERR_NO_FILE) {
-                    if (isset($_GET['debug'])) {
-                        error_log("DEBUG: Uploading file for comment ID: " . $commentModel->id);
-                        error_log("DEBUG: File array: " . json_encode($_FILES['comment_file']));
-                    }
-                    $uploadResult = $attachmentModel->upload($_FILES['comment_file'], 'comment', $commentModel->id);
-                    if (!$uploadResult['success']) {
-                        $errors[] = 'Ошибка при загрузке файла: ' . $uploadResult['error'];
-                        $fileUploadError = true;
-                    } else if (isset($_GET['debug'])) {
-                        $errors[] = 'Файл загружен успешно: ' . $uploadResult['filename'];
-                    }
-                }
-                
+                        elseif (isset($_FILES['comment_file']) && $_FILES['comment_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+                            if (isset($_GET['debug'])) {
+                                error_log("DEBUG: Uploading file for comment ID: " . $commentModel->id);
+                                error_log("DEBUG: File array: " . json_encode($_FILES['comment_file']));
+                            }
+                            $uploadResult = $attachmentModel->upload($_FILES['comment_file'], 'comment', $commentModel->id);
+                            if (!$uploadResult['success']) {
+                                $errors[] = 'Ошибка при загрузке файла: ' . $uploadResult['error'];
+                                $fileUploadError = true;
+                            } elseif (isset($_GET['debug'])) {
+                                $errors[] = 'Файл загружен успешно: ' . $uploadResult['filename'];
+                            }
+                        }
+
                 // Redirect only if no file upload errors
-                if (!$fileUploadError) {
-                    header('Location: topic.php?id=' . $topicId . '#post-' . $postId);
-                    exit;
-                }
+                        if (!$fileUploadError) {
+                            header('Location: topic.php?id=' . $topicId . '#post-' . $postId);
+                            exit;
+                        }
                     } else {
                         $errors[] = 'Не удалось сохранить комментарий. Попробуйте ещё раз.';
                     }
@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_topic_id'], $_PO
             $editStatus = $_POST['edit_topic_status'] ?? $topic['status'];
             $editPinned = isset($_POST['edit_topic_pinned']) ? 1 : 0;
         }
-        
+
         if (empty($editTitle)) {
             $errors[] = 'Заголовок темы не может быть пустым.';
         } elseif (mb_strlen($editDescription) < 10) {
@@ -193,7 +193,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_topic_id'], $_PO
             $topicModel->category_id = $editCategoryId ?: null;
             $topicModel->status = $editStatus;
             $topicModel->is_pinned = $editPinned;
-            
+
             if ($topicModel->update()) {
                 $topic = $topicModel->getById($topicId);
                 $topicCategory = null;
@@ -218,7 +218,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_topic_id'])) {
         foreach ($attachmentsForTopic as $attachment) {
             $attachmentModel->delete($attachment['id']);
         }
-        
+
         if ($topicModel->delete($topicId)) {
             header('Location: index.php');
             exit;
@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['edit_post_id'], $_POS
         } else {
             // Проверяем на запрещённые слова
             $checkResult = $autoModerator->checkPostOnUpdate($editPostId, $editContent, $currentUserId);
-            
+
             if ($checkResult['hidden']) {
                 // Пост был скрыт системой
                 $errors[] = 'Ваш пост содержит запрещённые слова и был скрыт.'  ;
@@ -295,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_post_id'])) {
         foreach ($attachmentsForPost as $attachment) {
             $attachmentModel->delete($attachment['id']);
         }
-        
+
         if ($postModel->delete($deletePostId)) {
             header('Location: topic.php?id=' . $topicId);
             exit;
@@ -317,7 +317,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_comment_id']))
         foreach ($attachments as $attachment) {
             $attachmentModel->delete($attachment['id']);
         }
-        
+
         if ($commentModel->delete($deleteCommentId)) {
             header('Location: topic.php?id=' . $topicId . '#post-' . $commentToDelete['post_id']);
             exit;
@@ -344,7 +344,8 @@ foreach ($allPosts as $post) {
     }
 }
 
-function buildCommentTree(array $comments) {
+function buildCommentTree(array $comments)
+{
     $tree = [];
     foreach ($comments as $comment) {
         $parentId = !empty($comment['parent_comment_id']) ? (int)$comment['parent_comment_id'] : 0;
@@ -353,17 +354,18 @@ function buildCommentTree(array $comments) {
     return $tree;
 }
 
-function renderComments(array $tree, int $parentId = 0, int $level = 0) {
+function renderComments(array $tree, int $parentId = 0, int $level = 0)
+{
     // Initialize globals if not already set
     global $userModel, $attachmentModel, $loggedIn, $currentUserId, $currentUserRole;
-    
+
     // Set GLOBALS for nested access
     $GLOBALS['userModel'] = $userModel;
     $GLOBALS['attachmentModel'] = $attachmentModel;
     $GLOBALS['loggedIn'] = $loggedIn;
     $GLOBALS['currentUserId'] = $currentUserId;
     $GLOBALS['currentUserRole'] = $currentUserRole;
-    
+
     if (empty($tree[$parentId])) {
         return;
     }
@@ -373,36 +375,36 @@ function renderComments(array $tree, int $parentId = 0, int $level = 0) {
         $commentAuthor['avatar_url'] = $commentAuthorProfile['avatar_url'] ?? $commentAuthor['avatar_url'] ?? null;
         $leftPadding = $level * 30;
         $borderColor = $level == 0 ? '#0d6efd' : '#6c757d';
-        
+
         echo '<div style="margin-left:' . $leftPadding . 'px; border-left: 3px solid ' . $borderColor . '; padding-left: 12px; margin-top: 12px;">';
-        
+
         // Comment Header with Author Info
         echo '<div class="d-flex align-items-start gap-2 mb-2">';
         echo '<div style="flex-shrink:0;">';
         echo getAvatarHtml($commentAuthor['username'] ?? 'Unknown', $commentAuthor['avatar_url'] ?? null);
         echo '</div>';
-        
+
         echo '<div class="flex-grow-1" style="width:100%;">';
         echo '<div class="d-flex align-items-center gap-2 mb-1">';
         echo '<strong>' . htmlspecialchars($commentAuthor['username'] ?? 'Unknown') . '</strong>';
         echo getAuthorBadge($commentAuthor['user_role'] ?? 'user');
-        
+
         // Level indicator for nested comments
         if ($level > 0) {
             echo '<span class="badge bg-light text-dark" style="font-size:0.75rem;">Ур. ' . ($level) . '</span>';
         }
-        
+
         echo '</div>';
-        
+
         echo '<div style="font-size: 0.85rem; color: #6c757d;">';
         echo '📅 ' . formatTime($comment['created_at']);
         if (!empty($comment['updated_at']) && $comment['updated_at'] != $comment['created_at']) {
             echo ' <span style="margin-left: 8px;">✏️ ред. ' . formatTime($comment['updated_at']) . '</span>';
         }
         echo '</div>';
-        
+
         echo '</div>';
-        
+
         // Edit/Delete buttons
         if ($GLOBALS['loggedIn'] && (canEditComment($comment, $GLOBALS['currentUserId'], $GLOBALS['currentUserRole']) || canDeleteComment($comment, $GLOBALS['currentUserId'], $GLOBALS['currentUserRole']))) {
             echo '<div class="btn-group btn-group-sm" role="group" style="margin-top:8px;">';
@@ -415,7 +417,7 @@ function renderComments(array $tree, int $parentId = 0, int $level = 0) {
             echo '</div>';
         }
         echo '</div>';
-        
+
         // Edit form for comment
         if (canEditComment($comment, $GLOBALS['currentUserId'], $GLOBALS['currentUserRole'])) {
             echo '<div id="edit-form-comment-' . $comment['id'] . '" class="edit-form d-none mt-3">';
@@ -427,11 +429,11 @@ function renderComments(array $tree, int $parentId = 0, int $level = 0) {
             echo '</form>';
             echo '</div>';
         }
-        
+
         // Comment body
         echo '<div class="comment-body" style="padding: 8px 0; margin-bottom: 8px;">';
         echo '<p style="white-space: pre-wrap; word-break: break-word;">' . parseMarkdown(nl2br(htmlspecialchars($comment['content']))) . '</p>';
-        
+
         // Display attachments
         $attachments = $GLOBALS['attachmentModel']->getByCommentId($comment['id']);
         if (!empty($attachments)) {
@@ -442,7 +444,7 @@ function renderComments(array $tree, int $parentId = 0, int $level = 0) {
             echo '</div>';
         }
         echo '</div>';
-        
+
         // Reply button
         if ($GLOBALS['loggedIn']) {
             echo '<button class="btn btn-sm btn-link p-0" data-bs-toggle="collapse" data-bs-target="#replyForm' . $comment['id'] . '" onclick="setParentComment(' . $comment['id'] . ')">💬 Ответить</button>';
@@ -458,7 +460,7 @@ function renderComments(array $tree, int $parentId = 0, int $level = 0) {
             echo '</form>';
             echo '</div>';
         }
-        
+
         // Recursively render child comments
         echo '</div>';
         renderComments($tree, $comment['id'], $level + 1);
@@ -466,9 +468,10 @@ function renderComments(array $tree, int $parentId = 0, int $level = 0) {
 }
 
 // Helper functions for formatting
-function displayAttachment($attachment) {
+function displayAttachment($attachment)
+{
     global $attachmentModel;
-    
+
     if ($attachmentModel->isImage($attachment['file_type'])) {
         // Display image inline
         echo '<div style="margin:5px 0;">';
@@ -482,16 +485,17 @@ function displayAttachment($attachment) {
         echo '<div style="margin:5px 0;">';
         echo '<a href="' . htmlspecialchars($attachment['file_path']) . '" target="_blank" download>';
         echo '📎 ' . htmlspecialchars($attachment['original_filename']) . '</a>';
-        echo ' (' . round($attachment['file_size']/1024) . ' KB)';
+        echo ' (' . round($attachment['file_size'] / 1024) . ' KB)';
         echo '</div>';
     }
 }
 
-function formatTime($timestamp) {
+function formatTime($timestamp)
+{
     $date = new DateTime($timestamp);
     $now = new DateTime();
     $diff = $now->diff($date);
-    
+
     if ($diff->days == 0) {
         if ($diff->h == 0) {
             return $diff->i . ' мин назад';
@@ -503,7 +507,8 @@ function formatTime($timestamp) {
     return $date->format('d.m.Y H:i');
 }
 
-function getAuthorBadge($userRole) {
+function getAuthorBadge($userRole)
+{
     $badges = [
         'admin' => '<span class="badge bg-danger">👑 Администратор</span>',
         'moderator' => '<span class="badge bg-warning text-dark">⚡ Модератор</span>',
@@ -512,11 +517,12 @@ function getAuthorBadge($userRole) {
     return $badges[$userRole] ?? $badges['user'];
 }
 
-function getAvatarHtml($username, $avatarUrl = null) {
+function getAvatarHtml($username, $avatarUrl = null)
+{
     if ($avatarUrl) {
         if (filter_var($avatarUrl, FILTER_VALIDATE_URL)) {
             // External URL
-            return '<img src="' . htmlspecialchars($avatarUrl) . '?t=' . time() . '" class="rounded-circle" width="40" height="40" alt="' . htmlspecialchars($username) . '" title="' . htmlspecialchars($username) . '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'inline-flex\';">' . 
+            return '<img src="' . htmlspecialchars($avatarUrl) . '?t=' . time() . '" class="rounded-circle" width="40" height="40" alt="' . htmlspecialchars($username) . '" title="' . htmlspecialchars($username) . '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'inline-flex\';">' .
                    '<div style="display:none; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; background-color:#ccc; color:white; font-weight:bold; font-size:18px;" title="' . htmlspecialchars($username) . '">' . htmlspecialchars(mb_substr($username, 0, 1)) . '</div>';
         }
 
@@ -540,7 +546,8 @@ function getAvatarHtml($username, $avatarUrl = null) {
     return '<div style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background-color:' . $bgColor . ';color:white;font-weight:bold;font-size:18px;" title="' . htmlspecialchars($username) . '">' . htmlspecialchars($initials) . '</div>';
 }
 
-function canEditTopic($topic, $userId, $userRole) {
+function canEditTopic($topic, $userId, $userRole)
+{
     if (in_array($userRole, ['moderator', 'admin'])) {
         return true;
     }
@@ -550,7 +557,8 @@ function canEditTopic($topic, $userId, $userRole) {
     return false;
 }
 
-function canDeleteTopic($topic, $userId, $userRole) {
+function canDeleteTopic($topic, $userId, $userRole)
+{
     if (in_array($userRole, ['moderator', 'admin'])) {
         return true;
     }
@@ -563,7 +571,8 @@ function canDeleteTopic($topic, $userId, $userRole) {
     return false;
 }
 
-function canEditPost($post, $userId, $userRole) {
+function canEditPost($post, $userId, $userRole)
+{
     if (in_array($userRole, ['moderator', 'admin'])) {
         return true;
     }
@@ -576,7 +585,8 @@ function canEditPost($post, $userId, $userRole) {
     return false;
 }
 
-function canDeletePost($post, $userId, $userRole) {
+function canDeletePost($post, $userId, $userRole)
+{
     if (in_array($userRole, ['moderator', 'admin'])) {
         return true;
     }
@@ -589,7 +599,8 @@ function canDeletePost($post, $userId, $userRole) {
     return false;
 }
 
-function canEditComment($comment, $userId, $userRole) {
+function canEditComment($comment, $userId, $userRole)
+{
     if (in_array($userRole, ['moderator', 'admin'])) {
         return true;
     }
@@ -602,7 +613,8 @@ function canEditComment($comment, $userId, $userRole) {
     return false;
 }
 
-function canDeleteComment($comment, $userId, $userRole) {
+function canDeleteComment($comment, $userId, $userRole)
+{
     if (in_array($userRole, ['moderator', 'admin'])) {
         return true;
     }
@@ -624,13 +636,13 @@ $currentUserAvatar = '';
 if (!$is_guest && isset($_SESSION['user_id'])) {
     $currentUserData = $userModel->getById($_SESSION['user_id']);
     $currentUserProfile = $userModel->getProfile($_SESSION['user_id']);
-    
+
     // Ensure profile exists
     if (!$currentUserProfile) {
         $userModel->updateProfile($_SESSION['user_id'], null, null, null, null);
         $currentUserProfile = $userModel->getProfile($_SESSION['user_id']);
     }
-    
+
     $currentUserAvatar = $currentUserProfile['avatar_url'] ?? $currentUserData['avatar_url'] ?? '';
 }
 
@@ -679,11 +691,11 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <i class="bi bi-house me-1"></i>Главная
                     </a>
                 </li>
-                <?php if ($loggedIn): ?>
+                <?php if ($loggedIn) : ?>
                 <li class="nav-item">
                     <a class="nav-link" href="../notifications.php">
                         <i class="bi bi-bell me-1"></i>Сообщения
-                        <?php if ($unread_count > 0): ?>
+                        <?php if ($unread_count > 0) : ?>
                             <span class="badge bg-danger ms-1"><?php echo $unread_count; ?></span>
                         <?php endif; ?>
                     </a>
@@ -698,21 +710,21 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <i class="bi bi-plus-circle me-1"></i>Создать тему
                     </a>
                 </li>
-                <?php if (in_array($currentUserRole, ['admin', 'moderator'])): ?>
+                    <?php if (in_array($currentUserRole, ['admin', 'moderator'])) : ?>
                 <li class="nav-item">
                     <a class="nav-link text-primary fw-semibold" href="../admin_panel.php">
                         <i class="bi bi-shield-check me-1"></i>Модерация
                     </a>
                 </li>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </ul>
             <div class="d-flex align-items-center gap-2">
-                <?php if ($loggedIn): ?>
+                <?php if ($loggedIn) : ?>
                     <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
                     </a>
-                <?php else: ?>
+                <?php else : ?>
                     <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                     </a>
@@ -731,13 +743,13 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         <div class="flex-grow-1">
                             <h1 class="card-title mb-1"><?= htmlspecialchars($topic['title']) ?></h1>
                             <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-                                <?php if (!empty($topic['updated_at']) && $topic['updated_at'] != $topic['created_at']): ?>
+                                <?php if (!empty($topic['updated_at']) && $topic['updated_at'] != $topic['created_at']) : ?>
                                     <span class="badge bg-info text-dark topic-badge">Отредактирована</span>
                                 <?php endif; ?>
-                                <?php if (!empty($topic['is_pinned'])): ?>
+                                <?php if (!empty($topic['is_pinned'])) : ?>
                                     <span class="badge bg-warning text-dark topic-badge">Закреплена</span>
                                 <?php endif; ?>
-                                <?php if (!empty($topicCategory)): ?>
+                                <?php if (!empty($topicCategory)) : ?>
                                     <span class="badge bg-primary bg-opacity-15 text-primary topic-badge"><?= htmlspecialchars($topicCategory['name']) ?></span>
                                 <?php endif; ?>
                                 <span class="badge bg-secondary topic-badge">ID <?= $topic['id'] ?></span>
@@ -746,20 +758,20 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 </a>
                             </div>
                             <p class="text-muted mb-0">Создана <?= htmlspecialchars($topic['created_at']) ?></p>
-                            <?php if (!empty($topicTags)): ?>
+                            <?php if (!empty($topicTags)) : ?>
                                 <div class="mt-3">
-                                    <?php foreach ($topicTags as $tag): ?>
+                                    <?php foreach ($topicTags as $tag) : ?>
                                         <a href="../index.php?tag=<?= urlencode($tag['name']) ?>" class="badge bg-secondary bg-opacity-15 text-dark me-1">#<?= htmlspecialchars($tag['name']) ?></a>
                                     <?php endforeach; ?>
                                 </div>
                             <?php endif; ?>
                         </div>
-                        <?php if ($loggedIn && (canEditTopic($topic, $currentUserId, $currentUserRole) || canDeleteTopic($topic, $currentUserId, $currentUserRole))): ?>
+                        <?php if ($loggedIn && (canEditTopic($topic, $currentUserId, $currentUserRole) || canDeleteTopic($topic, $currentUserId, $currentUserRole))) : ?>
                             <div class="btn-group ms-2" role="group">
-                                <?php if (canEditTopic($topic, $currentUserId, $currentUserRole)): ?>
+                                <?php if (canEditTopic($topic, $currentUserId, $currentUserRole)) : ?>
                                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleEditTopicForm()">Редактировать</button>
                                 <?php endif; ?>
-                                <?php if (canDeleteTopic($topic, $currentUserId, $currentUserRole)): ?>
+                                <?php if (canDeleteTopic($topic, $currentUserId, $currentUserRole)) : ?>
                                     <form method="post" style="display:inline;">
                                         <input type="hidden" name="delete_topic_id" value="<?= $topic['id'] ?>">
                                         <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить эту тему?')">Удалить</button>
@@ -767,19 +779,19 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <?php endif; ?>
                             </div>
                         <?php endif; ?>
-                        <?php if ($loggedIn && $currentUserId !== $topic['author_id']): ?>
+                        <?php if ($loggedIn && $currentUserId !== $topic['author_id']) : ?>
                             <button type="button" class="btn btn-sm btn-outline-warning ms-2" data-bs-toggle="modal" data-bs-target="#reportTopicModal">
                                 <i class="bi bi-exclamation-circle me-1"></i>Пожаловаться
                             </button>
                         <?php endif; ?>
                     </div>
-                    <?php if (!empty($topic['description'])): ?>
+                    <?php if (!empty($topic['description'])) : ?>
                         <p class="mt-3 mb-0"><?= nl2br(htmlspecialchars($topic['description'])) ?></p>
                     <?php endif; ?>
                 </div>
             </div>
 
-            <?php if (canEditTopic($topic, $currentUserId, $currentUserRole)): ?>
+            <?php if (canEditTopic($topic, $currentUserId, $currentUserRole)) : ?>
                 <div id="edit-topic-form" class="card mb-4 d-none">
                     <div class="card-body">
                         <h5 class="mb-3">Редактировать тему</h5>
@@ -792,16 +804,16 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 <label class="form-label">Категория</label>
                                 <select name="edit_topic_category" class="form-select">
                                     <option value="">Без категории</option>
-                                    <?php 
+                                    <?php
                                     $categoriesStmt = $categoryModel->getAll();
                                     $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
-                                    foreach ($categories as $cat): 
-                                    ?>
+                                    foreach ($categories as $cat) :
+                                        ?>
                                         <option value="<?= $cat['id'] ?>" <?= ($topic['category_id'] == $cat['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
-                            <?php if (in_array($currentUserRole, ['moderator', 'admin'])): ?>
+                            <?php if (in_array($currentUserRole, ['moderator', 'admin'])) : ?>
                                 <div class="row g-3 mb-3">
                                     <div class="col-md-6">
                                         <label class="form-label">Статус темы</label>
@@ -833,10 +845,10 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                 </div>
             <?php endif; ?>
 
-            <?php if (!empty($errors)): ?>
+            <?php if (!empty($errors)) : ?>
                 <div class="alert alert-danger alert-auto-close" role="alert">
                     <ul class="mb-0">
-                        <?php foreach ($errors as $error): ?>
+                        <?php foreach ($errors as $error) : ?>
                             <li><?= htmlspecialchars($error) ?></li>
                         <?php endforeach; ?>
                     </ul>
@@ -856,30 +868,30 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                 </script>
             <?php endif; ?>
 
-            <?php if ($userBanned && $banInfo): ?>
+            <?php if ($userBanned && $banInfo) : ?>
                 <div class="alert alert-warning" role="alert">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
                     <strong>Ваш аккаунт заблокирован!</strong>
-                    <?php if ($banInfo['permanent']): ?>
+                    <?php if ($banInfo['permanent']) : ?>
                         Вы не можете добавлять комментарии.
-                    <?php else: ?>
+                    <?php else : ?>
                         Вы не можете добавлять комментарии до <?php echo date('d.m.Y H:i', strtotime($banInfo['ban_until'])); ?>.
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
 
-            <?php if (empty($posts)): ?>
+            <?php if (empty($posts)) : ?>
                 <div class="alert alert-warning">В этой теме пока нет сообщений.</div>
             <?php endif; ?>
 
-            <?php foreach ($posts as $post): ?>
-                <?php 
+            <?php foreach ($posts as $post) : ?>
+                <?php
                 $comments = $commentModel->getByPostId($post['id'])->fetchAll(PDO::FETCH_ASSOC);
                 $postAuthor = $userModel->getById($post['author_id']);
                 $postAuthorProfile = $userModel->getProfile($postAuthor['id']);
                 $postAuthor['avatar_url'] = $postAuthorProfile['avatar_url'] ?? $postAuthor['avatar_url'] ?? null;
                 $postNumber = array_search($post['id'], array_column($posts, 'id')) + 1;
-                
+
                 // Проверяем может ли текущий пользователь видеть содержимое скрытого поста
                 $canViewHiddenContent = false;
                 if ($post['hidden']) {
@@ -903,7 +915,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             </div>
                             <div style="font-size: 0.85rem; color: #6c757d;">
                                 <span title="<?= htmlspecialchars($post['created_at']) ?>">📅 <?= formatTime($post['created_at']) ?></span>
-                                <?php if (!empty($post['updated_at']) && $post['updated_at'] != $post['created_at']): ?>
+                                <?php if (!empty($post['updated_at']) && $post['updated_at'] != $post['created_at']) : ?>
                                     <span style="margin-left: 10px;" title="<?= htmlspecialchars($post['updated_at']) ?>">✏️ ред. <?= formatTime($post['updated_at']) ?></span>
                                 <?php endif; ?>
                             </div>
@@ -917,24 +929,24 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                     <div class="d-flex align-items-center justify-content-end mb-2" style="gap: 10px;">
                             <span class="badge bg-secondary topic-badge">Комментариев: <?= count($comments) ?></span>
                             
-                            <?php if ($loggedIn && in_array($currentUserRole, ['admin', 'moderator'])): ?>
+                            <?php if ($loggedIn && in_array($currentUserRole, ['admin', 'moderator'])) : ?>
                                 <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#moderationModal<?= $post['id'] ?>">
                                     <i class="bi bi-shield-check me-1"></i>Модерация
                                 </button>
                             <?php endif; ?>
                             
-                            <?php if ($loggedIn && $post['author_id'] == $currentUserId && (!$post['hidden'] || $canViewHiddenContent)): ?>
+                            <?php if ($loggedIn && $post['author_id'] == $currentUserId && (!$post['hidden'] || $canViewHiddenContent)) : ?>
                                 <form method="post" style="display:inline;">
                                     <input type="hidden" name="delete_post_id" value="<?= $post['id'] ?>">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить этот пост?')">Удалить</button>
                                 </form>
                             <?php endif; ?>
                             
-                            <?php if ($loggedIn && canEditPost($post, $currentUserId, $currentUserRole) && (!$post['hidden'] || $canViewHiddenContent)): ?>
+                            <?php if ($loggedIn && canEditPost($post, $currentUserId, $currentUserRole) && (!$post['hidden'] || $canViewHiddenContent)) : ?>
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="toggleEditForm('post', <?= $post['id'] ?>)">Редактировать</button>
                             <?php endif; ?>
                             
-                            <?php if ($loggedIn && $post['author_id'] !== $currentUserId && (!$post['hidden'] || $canViewHiddenContent)): ?>
+                            <?php if ($loggedIn && $post['author_id'] !== $currentUserId && (!$post['hidden'] || $canViewHiddenContent)) : ?>
                                 <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#reportPostModal<?= $post['id'] ?>">
                                     <i class="bi bi-exclamation-circle me-1"></i>Пожаловаться
                                 </button>
@@ -943,13 +955,13 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                     </div>
                     
                     <!-- Post Content (Hidden if post is hidden) -->
-                    <?php if ($post['hidden'] && !$canViewHiddenContent): ?>
+                    <?php if ($post['hidden'] && !$canViewHiddenContent) : ?>
                         <div class="alert alert-danger mb-3">
                             <i class="bi bi-eye-slash me-2"></i><strong>Этот пост скрыт</strong><br>
                             <small class="text-muted">Причина: <?= htmlspecialchars($post['hidden_reason'] ?? 'Не указана') ?></small>
                         </div>
-                    <?php else: ?>
-                        <?php if ($post['hidden'] && $canViewHiddenContent): ?>
+                    <?php else : ?>
+                        <?php if ($post['hidden'] && $canViewHiddenContent) : ?>
                             <div class="alert alert-warning mb-3">
                                 <i class="bi bi-exclamation-triangle me-2"></i><strong>⚠️ Этот пост скрыт</strong> (видно только администраторам и автору)<br>
                                 <small class="text-muted">Причина: <?= htmlspecialchars($post['hidden_reason'] ?? 'Не указана') ?></small>
@@ -960,7 +972,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
                     <?php endif; ?>
                     
-                    <?php 
+                    <?php
                     // Display post attachments
                     $postAttachments = $GLOBALS['attachmentModel']->getByPostId($post['id']);
                     if (!empty($postAttachments)) {
@@ -977,7 +989,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 echo '<div style="margin:5px 0;">';
                                 echo '<a href="' . htmlspecialchars($att['file_path']) . '" target="_blank" download>';
                                 echo '📎 ' . htmlspecialchars($att['original_filename']) . '</a>';
-                                echo ' (' . round($att['file_size']/1024) . ' KB)';
+                                echo ' (' . round($att['file_size'] / 1024) . ' KB)';
                                 echo '</div>';
                             }
                         }
@@ -985,13 +997,13 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                     }
                     ?>
                     
-                    <?php if (!$post['hidden'] || $canViewHiddenContent): ?>
+                    <?php if (!$post['hidden'] || $canViewHiddenContent) : ?>
                     <div style="margin-top:10px;font-size:0.9rem;">
                         <button type="button" class="btn btn-sm btn-light" onclick="insertQuote(0, <?= $post['id'] ?>, '<?= addslashes(htmlspecialchars(mb_substr($post['content'], 0, 50))) ?>...')">Цитировать</button>
                     </div>
                     <?php endif; ?>
 
-                    <?php if (canEditPost($post, $currentUserId, $currentUserRole) && (!$post['hidden'] || $canViewHiddenContent)): ?>
+                    <?php if (canEditPost($post, $currentUserId, $currentUserRole) && (!$post['hidden'] || $canViewHiddenContent)) : ?>
                         <div id="edit-form-post-<?= $post['id'] ?>" class="edit-form d-none mb-3">
                             <form method="post">
                                 <div class="mb-3">
@@ -1005,7 +1017,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if (!empty($comments) && (!$post['hidden'] || $canViewHiddenContent)): ?>
+                    <?php if (!empty($comments) && (!$post['hidden'] || $canViewHiddenContent)) : ?>
                         <div class="mb-4">
                             <h6 class="mb-3">Комментарии</h6>
                             <?php
@@ -1015,15 +1027,15 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                         </div>
                     <?php endif; ?>
 
-                    <?php if ($post['hidden'] && !$canViewHiddenContent): ?>
+                    <?php if ($post['hidden'] && !$canViewHiddenContent) : ?>
                         <div class="alert alert-danger mb-0">
                             <i class="bi bi-lock me-2"></i>Этот пост скрыт. Добавление комментариев и других действий невозможно.
                         </div>
-                    <?php elseif ($topic['status'] === 'closed'): ?>
+                    <?php elseif ($topic['status'] === 'closed') : ?>
                         <div class="alert alert-warning mb-0">
                             <i class="bi bi-lock-fill me-2"></i>Тема закрыта. Добавление новых комментариев запрещено.
                         </div>
-                    <?php elseif ($loggedIn): ?>
+                    <?php elseif ($loggedIn) : ?>
                         <form method="post" class="comment-form" enctype="multipart/form-data" onsubmit="return validateCommentForm(this)">
                             <div class="mb-3">
                                 <label for="comment_text_<?= $post['id'] ?>" class="form-label">Добавить комментарий</label>
@@ -1044,13 +1056,13 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
                             <button type="submit" class="btn btn-primary">Отправить</button>
                         </form>
-                    <?php else: ?>
+                    <?php else : ?>
                         <div class="alert alert-secondary mb-0">Чтобы оставить комментарий, <a href="../auth/login.php">войдите</a> или <a href="../auth/register.php">зарегистрируйтесь</a>.</div>
                     <?php endif; ?>
                 </div>
 
                 <!-- Модальное окно для модерации поста -->
-                <?php if (in_array($currentUserRole, ['admin', 'moderator'])): ?>
+                <?php if (in_array($currentUserRole, ['admin', 'moderator'])) : ?>
                 <div class="modal fade" id="moderationModal<?= $post['id'] ?>" tabindex="-1">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -1064,16 +1076,16 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                 
                                 <div class="alert alert-info mb-3">
                                     📋 Статус: 
-                                    <?php if ($post['hidden']): ?>
+                                    <?php if ($post['hidden']) : ?>
                                         <span class="badge bg-danger">Скрыт</span> - <?= htmlspecialchars($post['hidden_reason']) ?>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <span class="badge bg-success">Видимый</span>
                                     <?php endif; ?>
                                 </div>
 
                                 <h6 class="mb-3">Действия модерации:</h6>
                                 <div class="d-grid gap-2">
-                                    <?php if (!$post['hidden']): ?>
+                                    <?php if (!$post['hidden']) : ?>
                                         <form method="POST" class="moderation-form" action="api_moderation.php">
                                             <input type="hidden" name="action" value="hide_post">
                                             <input type="hidden" name="post_id" value="<?= $post['id'] ?>">
@@ -1092,7 +1104,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                                                 <i class="bi bi-eye-slash me-1"></i>Скрыть пост
                                             </button>
                                         </form>
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         <div class="d-flex gap-2">
                                             <a href="#" class="btn btn-info btn-sm flex-fill" onclick="viewHiddenPost(<?= $post['id'] ?>, <?= $topicId ?>); return false;">
                                                 <i class="bi bi-eye me-1"></i>Посмотреть
@@ -1369,7 +1381,7 @@ function viewHiddenPost(postId, topicId) {
 </script>
 
 <!-- Модальные окна жалоб на посты -->
-<?php foreach ($posts as $p): ?>
+<?php foreach ($posts as $p) : ?>
 <div class="modal fade" id="reportPostModal<?= $p['id'] ?>" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

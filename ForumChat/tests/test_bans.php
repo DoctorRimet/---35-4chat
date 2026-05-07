@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../classes/User.php';
 require_once __DIR__ . '/../classes/AdminManager.php';
@@ -45,7 +46,6 @@ try {
     }
 
     echo "\n=== Тест завершён ===\n";
-
 } catch (Exception $e) {
     echo "✗ Критическая ошибка: " . $e->getMessage() . "\n";
     exit(1);

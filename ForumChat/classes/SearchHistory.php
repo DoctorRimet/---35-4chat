@@ -1,6 +1,7 @@
 <?php
-class SearchHistory {
 
+class SearchHistory
+{
     private $conn;
     private $table = 'search_history';
 
@@ -9,12 +10,14 @@ class SearchHistory {
     public $query;
     public $search_date;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
         $this->ensureTableExists();
     }
 
-    private function ensureTableExists() {
+    private function ensureTableExists()
+    {
         try {
             $sql = "CREATE TABLE IF NOT EXISTS `search_history` (
                 `id` BIGINT(20) PRIMARY KEY AUTO_INCREMENT,
@@ -32,7 +35,8 @@ class SearchHistory {
     }
 
     // Добавить поиск в историю
-    public function addSearch($user_id, $query) {
+    public function addSearch($user_id, $query)
+    {
         if (!$user_id || empty(trim($query))) {
             return false;
         }
@@ -47,19 +51,20 @@ class SearchHistory {
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':query', $query);
-        
+
         return $stmt->execute();
     }
 
     // Получить историю поисков пользователя (последние 30 дней)
-    public function getHistory($user_id, $limit = 20) {
+    public function getHistory($user_id, $limit = 20)
+    {
         $sql = "SELECT DISTINCT query, MAX(search_date) as last_search
                 FROM {$this->table}
                 WHERE user_id = :user_id AND search_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
                 GROUP BY query
                 ORDER BY last_search DESC
                 LIMIT :limit";
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -68,14 +73,15 @@ class SearchHistory {
     }
 
     // Получить топ поисков (по количеству)
-    public function getTopSearches($user_id, $limit = 10) {
+    public function getTopSearches($user_id, $limit = 10)
+    {
         $sql = "SELECT query, COUNT(*) as search_count, MAX(search_date) as last_search
                 FROM {$this->table}
                 WHERE user_id = :user_id AND search_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
                 GROUP BY query
                 ORDER BY search_count DESC, last_search DESC
                 LIMIT :limit";
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -84,7 +90,8 @@ class SearchHistory {
     }
 
     // Удалить один поиск из истории
-    public function deleteSearch($user_id, $query) {
+    public function deleteSearch($user_id, $query)
+    {
         $sql = "DELETE FROM {$this->table} 
                 WHERE user_id = :user_id AND query = :query";
         $stmt = $this->conn->prepare($sql);
@@ -94,7 +101,8 @@ class SearchHistory {
     }
 
     // Удалить всю историю поисков пользователя
-    public function clearHistory($user_id) {
+    public function clearHistory($user_id)
+    {
         $sql = "DELETE FROM {$this->table} WHERE user_id = :user_id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
@@ -102,9 +110,9 @@ class SearchHistory {
     }
 
     // Очистить устаревшую историю (старше 30 дней) для всех пользователей
-    public static function cleanupOldHistory($conn) {
+    public static function cleanupOldHistory($conn)
+    {
         $sql = "DELETE FROM search_history WHERE search_date < DATE_SUB(NOW(), INTERVAL 30 DAY)";
         return $conn->exec($sql);
     }
 }
-?>

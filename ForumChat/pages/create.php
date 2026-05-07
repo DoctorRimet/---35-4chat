@@ -27,19 +27,19 @@ require_once __DIR__ . '/../functions/markdown.php';
     // Проверка на блокировку пользователя
     $userBanned = false;
     $banInfo = null;
-    if ($currentUserId) {
-        $currentUser = $userModel->getById($currentUserId);
-        $userBanned = $userModel->isBanned($currentUser);
-        $banInfo = $_SESSION['ban_info'] ?? null;
-    }
+if ($currentUserId) {
+    $currentUser = $userModel->getById($currentUserId);
+    $userBanned = $userModel->isBanned($currentUser);
+    $banInfo = $_SESSION['ban_info'] ?? null;
+}
 
     // Проверка на блокировку пользователя
-    if ($currentUserId) {
-        $currentUser = $userModel->getById($currentUserId);
-        if ($userModel->isBanned($currentUser)) {
-            $errors[] = 'Ваш аккаунт заблокирован. Создание контента невозможно.';
-        }
+if ($currentUserId) {
+    $currentUser = $userModel->getById($currentUserId);
+    if ($userModel->isBanned($currentUser)) {
+        $errors[] = 'Ваш аккаунт заблокирован. Создание контента невозможно.';
     }
+}
     $errors = [];
     $title = '';
     $description = '';
@@ -52,37 +52,39 @@ require_once __DIR__ . '/../functions/markdown.php';
     $categories = $categoriesStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Load draft if editing
-    if (isset($_GET['draft'])) {
-        $draft_topic_id = (int)$_GET['draft'];
-        $draft_topic = $topicModel->getById($draft_topic_id);
-        if ($draft_topic && $draft_topic['author_id'] == $currentUserId && $draft_topic['status'] == 'draft') {
-            $title = $draft_topic['title'];
-            $description = $draft_topic['description'];
-            $category_id = $draft_topic['category_id'];
-            $draft_id = $draft_topic_id;
-            $draftTags = $topicModel->getTagsByTopic($draft_topic_id);
-            $tags_input = implode(', ', array_column($draftTags, 'name'));
-        }
+if (isset($_GET['draft'])) {
+    $draft_topic_id = (int)$_GET['draft'];
+    $draft_topic = $topicModel->getById($draft_topic_id);
+    if ($draft_topic && $draft_topic['author_id'] == $currentUserId && $draft_topic['status'] == 'draft') {
+        $title = $draft_topic['title'];
+        $description = $draft_topic['description'];
+        $category_id = $draft_topic['category_id'];
+        $draft_id = $draft_topic_id;
+        $draftTags = $topicModel->getTagsByTopic($draft_topic_id);
+        $tags_input = implode(', ', array_column($draftTags, 'name'));
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Проверка на блокировку перед созданием контента
+    if ($userBanned) {
+        $errors[] = 'Ваш аккаунт заблокирован. Создание контента невозможно.';
     }
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Проверка на блокировку перед созданием контента
-        if ($userBanned) {
-            $errors[] = 'Ваш аккаунт заблокирован. Создание контента невозможно.';
-        }
-        
-        if (!empty($errors)) {
-            // Не продолжаем обработку если есть ошибки
-        } else {
-            $title = trim($_POST['title'] ?? '');
-            $description = trim($_POST['description'] ?? '');
-            $category_id = $_POST['category_id'] ?? null;
-            $tags_input = trim($_POST['tags'] ?? '');
-            $action = $_POST['action'] ?? 'publish';
+    if (!empty($errors)) {
+        // Не продолжаем обработку если есть ошибки
+    } else {
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $category_id = $_POST['category_id'] ?? null;
+        $tags_input = trim($_POST['tags'] ?? '');
+        $action = $_POST['action'] ?? 'publish';
 
-            $tags = array_filter(array_map('trim', preg_split('/[,;]+/', $tags_input)), function($tag) { return $tag !== ''; });
+        $tags = array_filter(array_map('trim', preg_split('/[,;]+/', $tags_input)), function ($tag) {
+            return $tag !== '';
+        });
 
-            if ($action === 'save_draft') {
+        if ($action === 'save_draft') {
             // Save as draft
             if ($title === '') {
                 $errors[] = 'Заголовок темы не может быть пустым для черновика.';
@@ -190,10 +192,10 @@ require_once __DIR__ . '/../functions/markdown.php';
                     }
                 }
             }
-            }
         }
     }
-    ?>
+}
+?>
 
 <?php
 // Переменные для навигации
@@ -207,13 +209,13 @@ $unread_count = 0;
 if (!$is_guest && isset($_SESSION['user_id'])) {
     $currentUserData = $userModel->getById($_SESSION['user_id']);
     $currentUserProfile = $userModel->getProfile($_SESSION['user_id']);
-    
+
     // Ensure profile exists
     if (!$currentUserProfile) {
         $userModel->updateProfile($_SESSION['user_id'], null, null, null, null);
         $currentUserProfile = $userModel->getProfile($_SESSION['user_id']);
     }
-    
+
     $currentUserAvatar = $currentUserProfile['avatar_url'] ?? $currentUserData['avatar_url'] ?? '';
     $unread_count = $notificationManager->getUnreadCount($_SESSION['user_id']);
 }
@@ -250,39 +252,39 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
             <div class="collapse navbar-collapse" id="navMain">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" href="../index.php"><i class="bi bi-house me-1"></i>Главная</a></li>
-                    <?php if (!$is_guest): ?>
+                    <?php if (!$is_guest) : ?>
                     <li class="nav-item">
                         <a class="nav-link" href="../notifications.php">
                             <i class="bi bi-bell me-1"></i>Сообщения
-                            <?php if ($unread_count > 0): ?>
+                            <?php if ($unread_count > 0) : ?>
                                 <span class="badge bg-danger ms-1"><?php echo $unread_count; ?></span>
                             <?php endif; ?>
                         </a>
                     </li>
                     <li class="nav-item"><a class="nav-link" href="../home/profile.php"><i class="bi bi-person me-1"></i>Профиль</a></li>
                     <li class="nav-item"><a class="nav-link active fw-semibold" href="create.php"><i class="bi bi-plus-circle me-1"></i>Создать тему</a></li>
-                    <?php if (in_array($userRole, ['admin', 'moderator'])): ?>
+                        <?php if (in_array($userRole, ['admin', 'moderator'])) : ?>
                     <li class="nav-item">
                         <a class="nav-link text-primary fw-semibold" href="admin_panel.php">
                             <i class="bi bi-shield-check me-1"></i>Модерация
                         </a>
                     </li>
-                    <?php endif; ?>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </ul>
                 <div class="d-flex align-items-center gap-2">
-                    <?php if (!$is_guest && $currentUserAvatar): ?>
+                    <?php if (!$is_guest && $currentUserAvatar) : ?>
                         <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" class="avatar-sm" style="object-fit:cover;">
-                    <?php else: ?>
+                    <?php else : ?>
                         <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                     <?php endif; ?>
                     <span class="fw-semibold small"><?= $username ?></span>
-                    <?php if ($is_guest): ?>
+                    <?php if ($is_guest) : ?>
                         <span class="badge bg-secondary">Гость</span>
                         <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                             <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                         </a>
-                    <?php else:
+                    <?php else :
                         $roleLabel = 'Участник';
                         $badgeClass = 'bg-success bg-opacity-10 text-success';
                         if ($userRole === 'moderator') {
@@ -292,7 +294,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             $roleLabel = 'Админ';
                             $badgeClass = 'bg-primary bg-opacity-10 text-primary';
                         }
-                    ?>
+                        ?>
                         <span class="badge <?= $badgeClass ?>"><?= $roleLabel ?></span>
                         <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                             <i class="bi bi-box-arrow-right me-1"></i>Выйти
@@ -309,23 +311,23 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                 <div class="card page-card p-4">
                     <h3 class="mb-3">Создать тему</h3>
                     <p class="text-muted mb-4">Введите название новой темы форума.</p>
-                    <?php if (!empty($errors)): ?>
+                    <?php if (!empty($errors)) : ?>
                     <div class="alert alert-danger">
                         <ul class="mb-0">
-                            <?php foreach ($errors as $error): ?>
+                            <?php foreach ($errors as $error) : ?>
                             <li><?= htmlspecialchars($error) ?></li>
                             <?php endforeach; ?>
                         </ul>
                     </div>
                     <?php endif; ?>
 
-                    <?php if ($userBanned && $banInfo): ?>
+                    <?php if ($userBanned && $banInfo) : ?>
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle-fill me-2"></i>
                         <strong>Ваш аккаунт заблокирован!</strong>
-                        <?php if ($banInfo['permanent']): ?>
+                        <?php if ($banInfo['permanent']) : ?>
                             Вы не можете создавать новый контент.
-                        <?php else: ?>
+                        <?php else : ?>
                             Вы не можете создавать новый контент до <?php echo date('d.m.Y H:i', strtotime($banInfo['ban_until'])); ?>.
                         <?php endif; ?>
                     </div>
@@ -342,7 +344,7 @@ if (!$is_guest && isset($_SESSION['user_id'])) {
                             <label class="form-label">Категория</label>
                             <select name="category_id" id="topicCategory" class="form-select">
                                 <option value="">Без категории</option>
-                                <?php foreach ($categories as $category): ?>
+                                <?php foreach ($categories as $category) : ?>
                                 <option value="<?= $category['id'] ?>" <?= $category_id == $category['id'] ? 'selected' : '' ?>><?= htmlspecialchars($category['name']) ?></option>
                                 <?php endforeach; ?>
                             </select>

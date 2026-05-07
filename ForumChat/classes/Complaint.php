@@ -1,6 +1,7 @@
 <?php
-class Complaint {
 
+class Complaint
+{
     private $conn;
     private $table = 'complaints';
 
@@ -13,12 +14,14 @@ class Complaint {
     public $status;
     public $created_at;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
         $this->ensureTableStructure();
     }
 
-    private function ensureTableStructure() {
+    private function ensureTableStructure()
+    {
         try {
             // Проверяем есть ли колонка topic_id
             $checkSql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS 
@@ -27,7 +30,7 @@ class Complaint {
                         AND COLUMN_NAME = 'topic_id'";
             $stmt = $this->conn->prepare($checkSql);
             $stmt->execute();
-            
+
             if ($stmt->rowCount() === 0) {
                 // Добавляем колонку topic_id если её нет
                 $alterSql = "ALTER TABLE `complaints` 
@@ -40,7 +43,8 @@ class Complaint {
         }
     }
 
-    public function create() {
+    public function create()
+    {
         $sql = "INSERT INTO {$this->table} 
                 (post_id, topic_id, user_id, complainant_id, reason, status)
                 VALUES (:post_id, :topic_id, :user_id, :complainant_id, :reason, :status)";
@@ -63,7 +67,8 @@ class Complaint {
         return false;
     }
 
-    public function getAll() {
+    public function getAll()
+    {
         $sql = "SELECT c.*, 
                 p.id as post_exists, 
                 t.title as topic_title,
@@ -80,7 +85,8 @@ class Complaint {
         return $stmt;
     }
 
-    public function getAllPending() {
+    public function getAllPending()
+    {
         $sql = "SELECT c.*, 
                 p.id as post_exists, 
                 t.title as topic_title,
@@ -98,7 +104,8 @@ class Complaint {
         return $stmt;
     }
 
-    public function getByType($type) {
+    public function getByType($type)
+    {
         $column = null;
         if ($type === 'post') {
             $column = 'post_id';
@@ -129,7 +136,8 @@ class Complaint {
         return $stmt;
     }
 
-    public function getById($id) {
+    public function getById($id)
+    {
         $sql = "SELECT c.*, 
                 p.id as post_exists, 
                 t.title as topic_title,
@@ -147,7 +155,8 @@ class Complaint {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function updateStatus($id, $status) {
+    public function updateStatus($id, $status)
+    {
         if (!in_array($status, ['pending', 'resolved', 'rejected'])) {
             return false;
         }
@@ -159,14 +168,16 @@ class Complaint {
         return $stmt->execute();
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         $sql = "DELETE FROM {$this->table} WHERE id = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':id', $id);
         return $stmt->execute();
     }
 
-    public function countPending() {
+    public function countPending()
+    {
         $sql = "SELECT COUNT(*) as count FROM {$this->table} WHERE status = 'pending'";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -174,7 +185,8 @@ class Complaint {
         return (int)($result['count'] ?? 0);
     }
 
-    public function countByType($type) {
+    public function countByType($type)
+    {
         $column = null;
         if ($type === 'post') {
             $column = 'post_id';
@@ -196,4 +208,3 @@ class Complaint {
         return (int)($result['count'] ?? 0);
     }
 }
-?>

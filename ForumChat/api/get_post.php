@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../classes/Post.php';
@@ -35,13 +36,13 @@ if (!$post) {
 // Доступ имеют: администраторы, модераторы и автор поста
 if ($post['hidden']) {
     $canView = false;
-    
+
     if ($currentUserRole === 'admin' || $currentUserRole === 'moderator') {
         $canView = true;
     } elseif ($currentUserId === $post['author_id']) {
         $canView = true;
     }
-    
+
     if (!$canView) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'Access denied to hidden post']);

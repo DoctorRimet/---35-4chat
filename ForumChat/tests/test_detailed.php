@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Детальный тест функций модерации с ролями и уведомлениями
  */
@@ -35,7 +36,6 @@ try {
     foreach ($hierarchy as $role => $level) {
         $results[] = ['name' => "✅ Роль '$role' имеет уровень $level", 'detail' => 'Иерархия корректна'];
     }
-
 } catch (Exception $e) {
     $errors[] = ['name' => '❌ Проверка ролей', 'error' => $e->getMessage()];
 }
@@ -54,7 +54,6 @@ try {
             $errors[] = ['name' => "❌ Метод $method отсутствует", 'error' => 'Необходимо добавить'];
         }
     }
-
 } catch (Exception $e) {
     $errors[] = ['name' => '❌ Проверка методов User', 'error' => $e->getMessage()];
 }
@@ -73,7 +72,6 @@ try {
             $errors[] = ['name' => "❌ Метод $method отсутствует", 'error' => 'Необходимо добавить'];
         }
     }
-
 } catch (Exception $e) {
     $errors[] = ['name' => '❌ Проверка методов PostModeration', 'error' => $e->getMessage()];
 }
@@ -96,7 +94,6 @@ try {
             $results[] = ['name' => "ℹ️ Тип уведомления '$type' готов", 'detail' => 'Для будущих уведомлений'];
         }
     }
-
 } catch (Exception $e) {
     $errors[] = ['name' => '❌ Проверка типов уведомлений', 'error' => $e->getMessage()];
 }
@@ -115,7 +112,6 @@ try {
     } else {
         $errors[] = ['name' => '❌ Отсутствуют колонки в moderation_log', 'error' => 'Отсутствуют: ' . implode(', ', $missingColumns)];
     }
-
 } catch (Exception $e) {
     $errors[] = ['name' => '❌ Проверка структуры moderation_log', 'error' => $e->getMessage()];
 }
@@ -182,12 +178,14 @@ try {
         <h1><i class="fas fa-cogs"></i> Детальный тест функций модерации</h1>
 
         <div class="mb-4">
-            <h4>✅ Успешные тесты (<?php echo count(array_filter($results, function($r) { return strpos($r['name'], '✅') === 0; })); ?>)</h4>
-            <?php foreach ($results as $result): ?>
-                <?php if (strpos($result['name'], '✅') === 0): ?>
+            <h4>✅ Успешные тесты (<?php echo count(array_filter($results, function ($r) {
+    return strpos($r['name'], '✅') === 0;
+                                  })); ?>)</h4>
+            <?php foreach ($results as $result) : ?>
+                <?php if (strpos($result['name'], '✅') === 0) : ?>
                 <div class="test-result success">
                     <strong><?php echo htmlspecialchars($result['name']); ?></strong>
-                    <?php if (isset($result['detail'])): ?>
+                    <?php if (isset($result['detail'])) : ?>
                         <br><small><?php echo htmlspecialchars($result['detail']); ?></small>
                     <?php endif; ?>
                 </div>
@@ -196,12 +194,14 @@ try {
         </div>
 
         <div class="mb-4">
-            <h4>ℹ️ Информационные сообщения (<?php echo count(array_filter($results, function($r) { return strpos($r['name'], 'ℹ️') === 0; })); ?>)</h4>
-            <?php foreach ($results as $result): ?>
-                <?php if (strpos($result['name'], 'ℹ️') === 0): ?>
+            <h4>ℹ️ Информационные сообщения (<?php echo count(array_filter($results, function ($r) {
+    return strpos($r['name'], 'ℹ️') === 0;
+                                             })); ?>)</h4>
+            <?php foreach ($results as $result) : ?>
+                <?php if (strpos($result['name'], 'ℹ️') === 0) : ?>
                 <div class="test-result info">
                     <strong><?php echo htmlspecialchars($result['name']); ?></strong>
-                    <?php if (isset($result['detail'])): ?>
+                    <?php if (isset($result['detail'])) : ?>
                         <br><small><?php echo htmlspecialchars($result['detail']); ?></small>
                     <?php endif; ?>
                 </div>
@@ -209,10 +209,10 @@ try {
             <?php endforeach; ?>
         </div>
 
-        <?php if (!empty($errors)): ?>
+        <?php if (!empty($errors)) : ?>
         <div class="mb-4">
             <h4>❌ Ошибки (<?php echo count($errors); ?>)</h4>
-            <?php foreach ($errors as $error): ?>
+            <?php foreach ($errors as $error) : ?>
                 <div class="test-result error">
                     <strong><?php echo htmlspecialchars($error['name']); ?></strong>
                     <br><small><?php echo htmlspecialchars($error['error']); ?></small>

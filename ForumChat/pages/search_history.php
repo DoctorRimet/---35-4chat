@@ -81,14 +81,14 @@ body { background-color: #f0f2f5; }
                 <div class="section-title">
                     <i class="bi bi-clock-history me-1"></i>История поисков (последние 30 дней)
                 </div>
-                <?php if (!empty($searches)): ?>
+                <?php if (!empty($searches)) : ?>
                 <button class="btn btn-sm btn-outline-danger" onclick="if(confirm('Вы уверены?')) { window.location='?action=clear'; }">
                     <i class="bi bi-trash me-1"></i>Очистить
                 </button>
                 <?php endif; ?>
             </div>
 
-            <?php if (empty($searches)): ?>
+            <?php if (empty($searches)) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="empty-state">
                     <i class="bi bi-clock-history display-4 d-block mb-3"></i>
@@ -98,9 +98,9 @@ body { background-color: #f0f2f5; }
                     <a href="search.php" class="btn btn-primary mt-3">Начать поиск</a>
                 </div>
             </div>
-            <?php else: ?>
+            <?php else : ?>
             <div class="d-flex flex-column gap-2">
-                <?php foreach ($searches as $search): ?>
+                <?php foreach ($searches as $search) : ?>
                 <div class="search-item">
                     <div>
                         <a href="search.php?q=<?= urlencode($search['query']) ?>">
@@ -123,12 +123,12 @@ body { background-color: #f0f2f5; }
         </div>
 
         <div class="col-lg-4">
-            <?php if (!empty($topSearches)): ?>
+            <?php if (!empty($topSearches)) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="card-body">
                     <div class="section-title mb-3">Топ поисков</div>
                     <div class="list-group list-group-flush">
-                        <?php foreach ($topSearches as $search): ?>
+                        <?php foreach ($topSearches as $search) : ?>
                         <div class="list-group-item border-0 d-flex justify-content-between align-items-center px-0 py-2">
                             <a href="search.php?q=<?= urlencode($search['query']) ?>" class="text-decoration-none fw-500">
                                 <?= htmlspecialchars($search['query']) ?>

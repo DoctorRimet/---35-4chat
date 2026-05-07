@@ -1,6 +1,7 @@
 <?php
-class Topic {
 
+class Topic
+{
     private $conn;
     private $table = 'topics';
 
@@ -15,13 +16,15 @@ class Topic {
     public $updated_at;
     public $deleted;
 
-    public function __construct($db) {
+    public function __construct($db)
+    {
         $this->conn = $db;
         $this->ensureTagsTableExists();
         $this->ensureIsPinnedColumnExists();
     }
 
-    private function ensureIsPinnedColumnExists() {
+    private function ensureIsPinnedColumnExists()
+    {
         try {
             $stmt = $this->conn->prepare("SHOW COLUMNS FROM topics WHERE Field = 'is_pinned'");
             $stmt->execute();
@@ -33,7 +36,8 @@ class Topic {
         }
     }
 
-    private function ensureTagsTableExists() {
+    private function ensureTagsTableExists()
+    {
         try {
             $sql = "CREATE TABLE IF NOT EXISTS `topic_tags` (
                 `topic_id` bigint(20) NOT NULL,
@@ -49,7 +53,8 @@ class Topic {
         }
     }
 
-    public function create() {
+    public function create()
+    {
         $sql = "INSERT INTO {$this->table}
                 (title, description, category_id, author_id, status, is_pinned)
                 VALUES (:title, :description, :category_id, :author_id, :status, :is_pinned)";
@@ -74,21 +79,24 @@ class Topic {
         return false;
     }
 
-    public function getById($id) {
+    public function getById($id)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE id=:id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getByAuthorId($author_id) {
+    public function getByAuthorId($author_id)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE author_id=:author_id");
         $stmt->bindParam(':author_id', $author_id);
         $stmt->execute();
         return $stmt;
     }
 
-    public function update() {
+    public function update()
+    {
         $sql = "UPDATE {$this->table}
                 SET title=:title, description=:description, category_id=:category_id, status=:status, is_pinned=:is_pinned
                 WHERE id=:id";
@@ -108,14 +116,16 @@ class Topic {
         return $stmt->execute();
     }
 
-    public function getDraftsByAuthor($author_id) {
+    public function getDraftsByAuthor($author_id)
+    {
         $stmt = $this->conn->prepare("SELECT * FROM {$this->table} WHERE author_id=:author_id AND status='draft'");
         $stmt->bindParam(':author_id', $author_id);
         $stmt->execute();
         return $stmt;
     }
 
-    public function delete($id) {
+    public function delete($id)
+    {
         // Удаляем сначала все комментарии к постам этой темы
         $sql = "DELETE FROM comments WHERE post_id IN (
                     SELECT id FROM posts WHERE topic_id = :id
@@ -136,7 +146,8 @@ class Topic {
         return $stmt->execute();
     }
 
-    public function getAll($tag = null) {
+    public function getAll($tag = null)
+    {
         if ($tag) {
             $sql = "SELECT t.* FROM {$this->table} t
                     JOIN topic_tags tt ON tt.topic_id = t.id
@@ -154,7 +165,8 @@ class Topic {
         return $stmt;
     }
 
-    public function getTagsByTopic($topic_id) {
+    public function getTagsByTopic($topic_id)
+    {
         $sql = "SELECT tg.id, tg.name FROM tags tg
                 JOIN topic_tags tt ON tt.tag_id = tg.id
                 WHERE tt.topic_id = :topic_id
@@ -165,7 +177,8 @@ class Topic {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getPopularTags($limit = 10) {
+    public function getPopularTags($limit = 10)
+    {
         $sql = "SELECT tg.name, COUNT(tt.topic_id) AS topic_count FROM tags tg
                 JOIN topic_tags tt ON tt.tag_id = tg.id
                 WHERE tg.type = 'topic'
@@ -178,7 +191,8 @@ class Topic {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function saveTagsForTopic($topic_id, array $tags) {
+    public function saveTagsForTopic($topic_id, array $tags)
+    {
         $this->clearTags($topic_id);
         foreach ($tags as $tagName) {
             $tagName = trim($tagName);
@@ -199,13 +213,15 @@ class Topic {
         return true;
     }
 
-    public function clearTags($topic_id) {
+    public function clearTags($topic_id)
+    {
         $stmt = $this->conn->prepare("DELETE FROM topic_tags WHERE topic_id = :topic_id");
         $stmt->bindParam(':topic_id', $topic_id);
         return $stmt->execute();
     }
 
-    public function getTagIdByName($name) {
+    public function getTagIdByName($name)
+    {
         $sql = "SELECT id FROM tags WHERE LOWER(name) = LOWER(:name) LIMIT 1";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':name', $name);
@@ -214,7 +230,8 @@ class Topic {
         return $tag['id'] ?? null;
     }
 
-    public function createTag($name) {
+    public function createTag($name)
+    {
         $normalized = trim($name);
         if ($normalized === '') {
             return null;
@@ -235,7 +252,8 @@ class Topic {
     }
 
     // Управление статусом темы (открыта/закрыта)
-    public function setStatus($id, $status) {
+    public function setStatus($id, $status)
+    {
         if (!in_array($status, ['open', 'closed', 'archived', 'draft'])) {
             return false;
         }
@@ -247,7 +265,8 @@ class Topic {
     }
 
     // Закрепить/открепить тему
-    public function setPinned($id, $pinned) {
+    public function setPinned($id, $pinned)
+    {
         $pinned = (int)$pinned;
         $sql = "UPDATE {$this->table} SET is_pinned=:pinned WHERE id=:id";
         $stmt = $this->conn->prepare($sql);
@@ -257,7 +276,8 @@ class Topic {
     }
 
     // Переименовать тему
-    public function renameTitle($id, $newTitle) {
+    public function renameTitle($id, $newTitle)
+    {
         $newTitle = htmlspecialchars(strip_tags($newTitle));
         if (mb_strlen($newTitle) < 3 || mb_strlen($newTitle) > 255) {
             return false;
@@ -270,7 +290,8 @@ class Topic {
     }
 
     // Переместить тему в другую категорию
-    public function moveToCategory($id, $categoryId) {
+    public function moveToCategory($id, $categoryId)
+    {
         $categoryId = $categoryId ? (int)$categoryId : null;
         $sql = "UPDATE {$this->table} SET category_id=:category_id WHERE id=:id";
         $stmt = $this->conn->prepare($sql);
@@ -280,7 +301,8 @@ class Topic {
     }
 
     // Проверить закрыта ли тема
-    public function isClosed($id) {
+    public function isClosed($id)
+    {
         $stmt = $this->conn->prepare("SELECT status FROM {$this->table} WHERE id=:id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
@@ -289,7 +311,8 @@ class Topic {
     }
 
     // Получить темы по категории
-    public function getByCategory($category_id) {
+    public function getByCategory($category_id)
+    {
         $sql = "SELECT * FROM {$this->table} 
                 WHERE category_id = :category_id AND status != 'draft' 
                 ORDER BY is_pinned DESC, created_at DESC";
@@ -300,7 +323,8 @@ class Topic {
     }
 
     // Получить темы с информацией о категории
-    public function getAllWithCategory() {
+    public function getAllWithCategory()
+    {
         $sql = "SELECT t.*, c.name as category_name, c.id as category_id 
                 FROM {$this->table} t 
                 LEFT JOIN categories c ON c.id = t.category_id 
@@ -312,7 +336,8 @@ class Topic {
     }
 
     // Получить количество всех тем для пагинации
-    public function getTotalCount($category_id = null) {
+    public function getTotalCount($category_id = null)
+    {
         if ($category_id) {
             $sql = "SELECT COUNT(*) as total FROM {$this->table} WHERE category_id = :category_id AND status != 'draft'";
             $stmt = $this->conn->prepare($sql);
@@ -327,7 +352,8 @@ class Topic {
     }
 
     // Получить темы с пагинацией
-    public function getPaginated($page = 1, $limit = 20, $category_id = null) {
+    public function getPaginated($page = 1, $limit = 20, $category_id = null)
+    {
         $page = max(1, (int)$page);
         $limit = max(1, min(100, (int)$limit)); // От 1 до 100
         $offset = ($page - 1) * $limit;
@@ -354,7 +380,8 @@ class Topic {
     }
 
     // Получить недавние обсуждения (темы с последними постами)
-    public function getRecentDiscussions($limit = 5) {
+    public function getRecentDiscussions($limit = 5)
+    {
         $sql = "SELECT t.*, 
                 (SELECT MAX(created_at) FROM posts WHERE topic_id = t.id) as last_post_date,
                 (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) as posts_count
@@ -369,7 +396,8 @@ class Topic {
     }
 
     // Получить популярные темы (по количеству постов)
-    public function getPopularTopics($limit = 5) {
+    public function getPopularTopics($limit = 5)
+    {
         $sql = "SELECT t.*, 
                 (SELECT COUNT(*) FROM posts WHERE topic_id = t.id) as posts_count,
                 (SELECT COUNT(*) FROM comments WHERE post_id IN (SELECT id FROM posts WHERE topic_id = t.id)) as comments_count,
@@ -386,15 +414,16 @@ class Topic {
     }
 
     // Получить темы пользователя
-    public function getByUserId($user_id, $limit = null) {
+    public function getByUserId($user_id, $limit = null)
+    {
         $sql = "SELECT * FROM {$this->table} 
                 WHERE author_id = :user_id AND status != 'draft'
                 ORDER BY created_at DESC";
-        
+
         if ($limit) {
             $sql .= " LIMIT :limit";
         }
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         if ($limit) {
@@ -405,7 +434,8 @@ class Topic {
     }
 
     // Получить количество тем пользователя
-    public function getCountByUserId($user_id) {
+    public function getCountByUserId($user_id)
+    {
         $sql = "SELECT COUNT(*) as total FROM {$this->table} 
                 WHERE author_id = :user_id AND status != 'draft'";
         $stmt = $this->conn->prepare($sql);
@@ -415,4 +445,3 @@ class Topic {
         return (int)($result['total'] ?? 0);
     }
 }
-?>

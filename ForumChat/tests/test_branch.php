@@ -148,7 +148,7 @@ body { background-color: #f0f2f5; }
                         <i class="bi bi-house me-1"></i>Главная
                     </a>
                 </li>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <li class="nav-item">
                     <a class="nav-link" href="create.php">
                         <i class="bi bi-plus-circle me-1"></i>Создать тему
@@ -160,12 +160,12 @@ body { background-color: #f0f2f5; }
             <div class="d-flex align-items-center gap-2">
                 <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                 <span class="fw-semibold small"><?= $username ?></span>
-                <?php if ($is_guest): ?>
+                <?php if ($is_guest) : ?>
                     <span class="badge bg-secondary">Гость</span>
                     <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                     </a>
-                <?php else: ?>
+                <?php else : ?>
                     <span class="badge bg-success bg-opacity-10 text-success">Участник</span>
                     <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
@@ -237,35 +237,35 @@ body { background-color: #f0f2f5; }
         <div class="col-lg-8">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="section-title">Темы форума</div>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <a href="create.php" class="btn btn-create btn-primary btn-sm px-3">
                     <i class="bi bi-plus-lg me-1"></i>Новая тема
                 </a>
                 <?php endif; ?>
             </div>
 
-            <?php if (empty($topics)): ?>
+            <?php if (empty($topics)) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="empty-state">
                     <i class="bi bi-chat-square-dots display-4 d-block mb-3"></i>
                     <p class="mb-0">Тем пока нет. Будьте первым!</p>
-                    <?php if (!$is_guest): ?>
+                    <?php if (!$is_guest) : ?>
                     <a href="create.php" class="btn btn-create btn-primary mt-3">Создать тему</a>
                     <?php endif; ?>
                 </div>
             </div>
-            <?php else: ?>
+            <?php else : ?>
             <div class="d-flex flex-column gap-2">
-                <?php foreach ($topics as $t): ?>
-                <?php
-                $post_count = $post_counts[$t['id']] ?? 0;
-                $author = $user->getById($t['author_id']);
-                $author_name = $author ? htmlspecialchars($author['username']) : 'Неизвестно';
-                $author_initial = mb_strtoupper(mb_substr($author_name, 0, 1));
-                $status_map = ['open' => ['Открыта','success'], 'closed' => ['Закрыта','danger'], 'archived' => ['Архив','secondary']];
-                [$status_label, $status_color] = $status_map[$t['status']] ?? ['Открыта','success'];
-                $date = date('d.m.Y', strtotime($t['created_at']));
-                ?>
+                <?php foreach ($topics as $t) : ?>
+                    <?php
+                    $post_count = $post_counts[$t['id']] ?? 0;
+                    $author = $user->getById($t['author_id']);
+                    $author_name = $author ? htmlspecialchars($author['username']) : 'Неизвестно';
+                    $author_initial = mb_strtoupper(mb_substr($author_name, 0, 1));
+                    $status_map = ['open' => ['Открыта','success'], 'closed' => ['Закрыта','danger'], 'archived' => ['Архив','secondary']];
+                    [$status_label, $status_color] = $status_map[$t['status']] ?? ['Открыта','success'];
+                    $date = date('d.m.Y', strtotime($t['created_at']));
+                    ?>
                 <div class="card topic-card" onclick="window.location='topic.php?id=<?= $t['id'] ?>'">
                     <div class="card-body py-3 px-3">
                         <div class="d-flex align-items-start gap-3">
@@ -302,18 +302,18 @@ body { background-color: #f0f2f5; }
                         </div>
                         <div>
                             <div class="fw-bold"><?= $username ?></div>
-                            <?php if ($is_guest): ?>
+                            <?php if ($is_guest) : ?>
                             <span class="badge bg-secondary">Гость</span>
-                            <?php else: ?>
+                            <?php else : ?>
                             <span class="badge bg-success bg-opacity-10 text-success">Участник</span>
                             <?php endif; ?>
                         </div>
                     </div>
-                    <?php if ($is_guest): ?>
+                    <?php if ($is_guest) : ?>
                     <a href="../auth/login.php" class="btn btn-create btn-primary w-100 btn-sm">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти в аккаунт
                     </a>
-                    <?php else: ?>
+                    <?php else : ?>
                     <a href="../auth/logout.php" class="btn btn-outline-danger w-100 btn-sm rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
                     </a>
@@ -321,7 +321,7 @@ body { background-color: #f0f2f5; }
                 </div>
             </div>
 
-            <?php if (!$is_guest): ?>
+            <?php if (!$is_guest) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="card-body">
                     <div class="section-title mb-3">Быстрые действия с репозиторием</div>

@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/config/database.php';
 
 $db = new Database();
@@ -299,4 +300,3 @@ if (!empty($joinResults)) {
 echo "<hr>";
 
 echo "<p style='text-align:center; color:green; font-size:16px;'><strong>✅ Проверка завершена!</strong></p>";
-?>

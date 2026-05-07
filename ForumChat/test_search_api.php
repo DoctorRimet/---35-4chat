@@ -1,7 +1,9 @@
 <?php
+
 /**
  * Тестирование API поиска
  */
+
 echo "=== Тест API поиска ===\n\n";
 
 // Проверим наличие файлов
@@ -18,7 +20,7 @@ try {
     $db = new Database();
     $conn = $db->getConnection();
     echo "   ✓ Успешно подключено к БД\n\n";
-    
+
     // Проверим таблицы
     echo "3. Проверка таблиц:\n";
     $tables = ['posts', 'topics', 'users'];
@@ -28,7 +30,7 @@ try {
         echo "   - {$table}: {$result['cnt']} записей\n";
     }
     echo "\n";
-    
+
     // Попробуем выполнить простой поиск
     echo "4. Тестовый поиск:\n";
     $searchTerm = '%тест%';
@@ -43,14 +45,13 @@ try {
     AND p.hidden = 0
     LIMIT 5
     ";
-    
+
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(1, $searchTerm, PDO::PARAM_STR);
     $stmt->bindParam(2, $searchTerm, PDO::PARAM_STR);
     $stmt->execute();
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo "   - Найдено " . count($results) . " постов\n\n";
-    
 } catch (Exception $e) {
     echo "   ✗ Ошибка: " . $e->getMessage() . "\n\n";
 }

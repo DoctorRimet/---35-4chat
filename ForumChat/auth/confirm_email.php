@@ -47,7 +47,7 @@ if (!$token) {
         </div>
         <div class="card auth-card">
             <div class="card-body p-4">
-                <?php if ($success): ?>
+                <?php if ($success) : ?>
                     <div class="text-center py-3">
                         <div class="mb-3">
                             <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width:64px;height:64px">
@@ -58,7 +58,7 @@ if (!$token) {
                         <p class="text-muted mb-4">Теперь вы можете войти в аккаунт.</p>
                         <a href="login.php" class="btn btn-primary-custom btn-primary w-100">Перейти на страницу входа</a>
                     </div>
-                <?php else: ?>
+                <?php else : ?>
                     <h4 class="fw-bold mb-2">Ошибка подтверждения</h4>
                     <p class="text-muted mb-4"><?= htmlspecialchars($error) ?></p>
                     <div class="d-grid gap-2">

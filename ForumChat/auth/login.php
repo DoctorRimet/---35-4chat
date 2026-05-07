@@ -236,27 +236,29 @@ body { background-color: #f0f2f5; min-height: 100vh; }
         </div>
         <div class="card auth-card">
             <div class="card-body p-4">
-                <?php if ($success): ?>
+                <?php if ($success) : ?>
                 <div class="text-center py-3">
                     <div class="mb-3"><span class="display-4 text-success">✓</span></div>
                     <h4 class="fw-bold mb-2">Добро пожаловать!</h4>
                     <p class="text-muted mb-4">Вы вошли как <strong><?= htmlspecialchars($_SESSION['username']) ?></strong></p>
                     <a href="../index.php" class="btn btn-primary-custom btn-primary w-100">Перейти на форум →</a>
                 </div>
-                <?php else: ?>
+                <?php else : ?>
                 <h4 class="fw-bold mb-1"><?= $twoFactorStep ? 'Введите код 2FA' : 'Добро пожаловать' ?></h4>
                 <p class="text-muted small mb-4"><?= $twoFactorStep ? 'Введите код, сгенерированный в приложении, чтобы завершить вход.' : 'Войдите в свой аккаунт' ?></p>
-                <?php if (isset($_GET['loggedout'])): ?>
+                    <?php if (isset($_GET['loggedout'])) : ?>
                 <div class="alert alert-info d-flex align-items-center gap-2 py-2">
                     <i class="bi bi-info-circle"></i><span>Вы вышли из аккаунта</span>
                 </div>
-                <?php endif; ?>
-                <?php if (!empty($errors)): ?>
+                    <?php endif; ?>
+                    <?php if (!empty($errors)) : ?>
                 <div class="alert alert-danger d-flex align-items-start gap-2 py-2">
                     <i class="bi bi-exclamation-triangle mt-1"></i>
-                    <div><?php foreach ($errors as $err): ?><div><?= htmlspecialchars($err) ?></div><?php endforeach; ?></div>
+                    <div><?php foreach ($errors as $err) :
+                        ?><div><?= htmlspecialchars($err) ?></div><?php
+                         endforeach; ?></div>
                 </div>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <form action="login.php" method="POST" novalidate>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-uppercase text-secondary" for="email">Email</label>
@@ -267,7 +269,7 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                                 autocomplete="email" <?= $twoFactorStep ? 'readonly' : 'required' ?>>
                         </div>
                     </div>
-                    <?php if ($twoFactorStep): ?>
+                    <?php if ($twoFactorStep) : ?>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-uppercase text-secondary" for="otp">Код 2FA</label>
                         <div class="input-group">
@@ -276,7 +278,7 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                                 placeholder="Введите код из приложения" autocomplete="one-time-code" required>
                         </div>
                     </div>
-                    <?php else: ?>
+                    <?php else : ?>
                     <div class="mb-3">
                         <label class="form-label fw-semibold small text-uppercase text-secondary" for="password">Пароль</label>
                         <div class="input-group">

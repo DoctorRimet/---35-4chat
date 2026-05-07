@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Простой тест основных функций модерации без авторизации
  */
@@ -133,20 +134,20 @@ try {
 
         <div class="mb-4">
             <h4>✅ Успешные тесты (<?php echo count($results); ?>)</h4>
-            <?php foreach ($results as $result): ?>
+            <?php foreach ($results as $result) : ?>
                 <div class="test-result success">
                     <strong><?php echo htmlspecialchars($result['name']); ?></strong>
-                    <?php if (isset($result['detail'])): ?>
+                    <?php if (isset($result['detail'])) : ?>
                         <br><small><?php echo htmlspecialchars($result['detail']); ?></small>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
 
-        <?php if (!empty($errors)): ?>
+        <?php if (!empty($errors)) : ?>
         <div class="mb-4">
             <h4>❌ Ошибки (<?php echo count($errors); ?>)</h4>
-            <?php foreach ($errors as $error): ?>
+            <?php foreach ($errors as $error) : ?>
                 <div class="test-result error">
                     <strong><?php echo htmlspecialchars($error['name']); ?></strong>
                     <br><small><?php echo htmlspecialchars($error['error']); ?></small>

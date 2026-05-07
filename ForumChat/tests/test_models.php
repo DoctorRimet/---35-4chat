@@ -18,8 +18,8 @@ echo "=============================" . PHP_EOL;
 echo PHP_EOL . "=== TEST: User ===" . PHP_EOL;
 
 $user = new User($conn);
-$user->username = "test_user_" . rand(1,9999);
-$user->email = "test" . rand(1,9999) . "@mail.com";
+$user->username = "test_user_" . rand(1, 9999);
+$user->email = "test" . rand(1, 9999) . "@mail.com";
 $user->password_hash = password_hash("123456", PASSWORD_DEFAULT);
 
 if ($user->create()) {
@@ -36,7 +36,7 @@ $user->status = "active";
 echo $user->update() ? "UPDATE: OK" . PHP_EOL : "UPDATE: ERROR" . PHP_EOL;
 
 $stmt = $user->getAll();
-echo "GET ALL: OK (".$stmt->rowCount().")" . PHP_EOL;
+echo "GET ALL: OK (" . $stmt->rowCount() . ")" . PHP_EOL;
 
 echo $user->delete($user->id) ? "DELETE: OK" . PHP_EOL : "DELETE: ERROR" . PHP_EOL;
 
@@ -60,7 +60,7 @@ $topic->status = "closed";
 echo $topic->update() ? "UPDATE: OK" . PHP_EOL : "UPDATE: ERROR" . PHP_EOL;
 
 $stmt = $topic->getAll();
-echo "GET ALL: OK (".$stmt->rowCount().")" . PHP_EOL;
+echo "GET ALL: OK (" . $stmt->rowCount() . ")" . PHP_EOL;
 
 echo $topic->delete($topicId) ? "DELETE: OK" . PHP_EOL : "DELETE: ERROR" . PHP_EOL;
 
@@ -84,7 +84,7 @@ $cat->name = "Updated Category";
 echo $cat->update() ? "UPDATE: OK" . PHP_EOL : "UPDATE: ERROR" . PHP_EOL;
 
 $stmt = $cat->getAll();
-echo "GET ALL: OK (".$stmt->rowCount().")" . PHP_EOL;
+echo "GET ALL: OK (" . $stmt->rowCount() . ")" . PHP_EOL;
 
 echo $cat->delete($catId) ? "DELETE: OK" . PHP_EOL : "DELETE: ERROR" . PHP_EOL;
 
@@ -108,7 +108,7 @@ $post->content = "Updated content";
 echo $post->update() ? "UPDATE: OK" . PHP_EOL : "UPDATE: ERROR" . PHP_EOL;
 
 $stmt = $post->getAll();
-echo "GET ALL: OK (".$stmt->rowCount().")" . PHP_EOL;
+echo "GET ALL: OK (" . $stmt->rowCount() . ")" . PHP_EOL;
 
 echo $post->delete($postId) ? "DELETE: OK" . PHP_EOL : "DELETE: ERROR" . PHP_EOL;
 
@@ -133,7 +133,7 @@ $notif->read_status = 1;
 echo $notif->update() ? "UPDATE: OK" . PHP_EOL : "UPDATE: ERROR" . PHP_EOL;
 
 $stmt = $notif->getAll();
-echo "GET ALL: OK (".$stmt->rowCount().")" . PHP_EOL;
+echo "GET ALL: OK (" . $stmt->rowCount() . ")" . PHP_EOL;
 
 echo $notif->delete($notifId) ? "DELETE: OK" . PHP_EOL : "DELETE: ERROR" . PHP_EOL;
 

@@ -103,13 +103,13 @@ $currentUserAvatar = '';
 if (!$is_guest && isset($_SESSION['user_id'])) {
     $currentUserData = $user->getById($_SESSION['user_id']);
     $currentUserProfile = $user->getProfile($_SESSION['user_id']);
-    
+
     // Ensure profile exists
     if (!$currentUserProfile) {
         $user->updateProfile($_SESSION['user_id'], null, null, null, null);
         $currentUserProfile = $user->getProfile($_SESSION['user_id']);
     }
-    
+
     $currentUserAvatar = $currentUserProfile['avatar_url'] ?? $currentUserData['avatar_url'] ?? '';
 }
 
@@ -191,11 +191,11 @@ body { background-color: #f0f2f5; }
                         <i class="bi bi-house me-1"></i>Главная
                     </a>
                 </li>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <li class="nav-item">
                     <a class="nav-link" href="../notifications.php">
                         <i class="bi bi-bell me-1"></i>Сообщения
-                        <?php if ($unread_count > 0): ?>
+                        <?php if ($unread_count > 0) : ?>
                             <span class="badge bg-danger ms-1"><?php echo $unread_count; ?></span>
                         <?php endif; ?>
                     </a>
@@ -215,29 +215,29 @@ body { background-color: #f0f2f5; }
                         <i class="bi bi-plus-circle me-1"></i>Создать тему
                     </a>
                 </li>
-                <?php if (in_array($userRole, ['admin', 'moderator'])): ?>
+                    <?php if (in_array($userRole, ['admin', 'moderator'])) : ?>
                 <li class="nav-item">
                     <a class="nav-link text-primary fw-semibold" href="admin_panel.php">
                         <i class="bi bi-shield-check me-1"></i>Модерация
                     </a>
                 </li>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
-                <?php if (!$is_guest && $currentUserAvatar): ?>
+                <?php if (!$is_guest && $currentUserAvatar) : ?>
                     <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" class="avatar-sm" style="object-fit:cover;">
-                <?php else: ?>
+                <?php else : ?>
                     <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                 <?php endif; ?>
                 <span class="fw-semibold small"><?= $username ?></span>
-                <?php if ($is_guest): ?>
+                <?php if ($is_guest) : ?>
                     <span class="badge bg-secondary">Гость</span>
                     <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                     </a>
-                <?php else:
+                <?php else :
                     $roleLabel = 'Участник';
                     $badgeClass = 'bg-success bg-opacity-10 text-success';
                     if ($userRole === 'moderator') {
@@ -247,7 +247,7 @@ body { background-color: #f0f2f5; }
                         $roleLabel = 'Админ';
                         $badgeClass = 'bg-primary bg-opacity-10 text-primary';
                     }
-                ?>
+                    ?>
                     <span class="badge <?= $badgeClass ?>"><?= $roleLabel ?></span>
                     <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
@@ -367,7 +367,7 @@ body { background-color: #f0f2f5; }
         <div class="col-lg-8">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div class="section-title">Темы форума</div>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <a href="../create.php" class="btn btn-create btn-primary btn-sm px-3">
                     <i class="bi bi-plus-lg me-1"></i>Новая тема
                 </a>
@@ -375,7 +375,7 @@ body { background-color: #f0f2f5; }
             </div>
 
             <!-- Хлебные крошки (breadcrumbs) -->
-            <?php if (!empty($breadcrumbs)): ?>
+            <?php if (!empty($breadcrumbs)) : ?>
             <nav aria-label="breadcrumb" class="mb-3">
                 <ol class="breadcrumb mb-0 bg-light p-2 rounded">
                     <li class="breadcrumb-item">
@@ -383,11 +383,11 @@ body { background-color: #f0f2f5; }
                             <i class="bi bi-house me-1"></i>Все категории
                         </a>
                     </li>
-                    <?php foreach ($breadcrumbs as $bc): ?>
+                    <?php foreach ($breadcrumbs as $bc) : ?>
                     <li class="breadcrumb-item <?= ($bc['id'] === $selectedCategory) ? 'active' : '' ?>">
-                        <?php if ($bc['id'] === $selectedCategory): ?>
+                        <?php if ($bc['id'] === $selectedCategory) : ?>
                             <strong><?= htmlspecialchars($bc['name']) ?></strong>
-                        <?php else: ?>
+                        <?php else : ?>
                             <a href="index.php?category=<?= $bc['id'] ?>" class="text-decoration-none">
                                 <?= htmlspecialchars($bc['name']) ?>
                             </a>
@@ -399,14 +399,14 @@ body { background-color: #f0f2f5; }
             <?php endif; ?>
 
             <!-- Панель категорий -->
-            <?php if (!empty($allCategories)): ?>
+            <?php if (!empty($allCategories)) : ?>
             <div class="card border-0 rounded-3 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="d-flex gap-2 flex-wrap">
                         <a href="index.php" class="btn btn-sm <?= !$selectedCategory ? 'btn-primary' : 'btn-outline-secondary' ?> rounded-pill">
                             <i class="bi bi-grid-3x2-gap me-1"></i>Все темы
                         </a>
-                        <?php foreach ($allCategories as $cat): ?>
+                        <?php foreach ($allCategories as $cat) : ?>
                         <a href="index.php?category=<?= $cat['id'] ?>" class="btn btn-sm <?= ($selectedCategory === (int)$cat['id']) ? 'btn-primary' : 'btn-outline-secondary' ?> rounded-pill">
                             <i class="bi bi-folder me-1"></i><?= htmlspecialchars($cat['name']) ?>
                         </a>
@@ -416,49 +416,49 @@ body { background-color: #f0f2f5; }
             </div>
             <?php endif; ?>
 
-            <?php if ($selectedTag && !$selectedCategory): ?>
+            <?php if ($selectedTag && !$selectedCategory) : ?>
             <div class="alert alert-info">
                 <strong>Фильтр по тегу:</strong> <span class="badge bg-secondary">#<?= htmlspecialchars($selectedTag) ?></span>
                 <a href="index.php" class="link-primary ms-2">Сбросить фильтр</a>
             </div>
             <?php endif; ?>
 
-            <?php if (empty($topics)): ?>
+            <?php if (empty($topics)) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="empty-state">
                     <i class="bi bi-chat-square-dots display-4 d-block mb-3"></i>
                     <p class="mb-0">Тем пока нет. Будьте первым!</p>
-                    <?php if (!$is_guest): ?>
+                    <?php if (!$is_guest) : ?>
                     <a href="../create.php" class="btn btn-create btn-primary mt-3">Создать тему</a>
                     <?php endif; ?>
                 </div>
             </div>
-            <?php else: ?>
+            <?php else : ?>
             <div class="d-flex flex-column gap-2">
-                <?php foreach ($topics as $t): ?>
-                <?php
-                $post_count = $post_counts[$t['id']] ?? 0;
-                $author = $user->getById($t['author_id']);
-                $author_profile = $user->getProfile($t['author_id']);
-                $author_avatar = $author_profile['avatar_url'] ?? $author['avatar_url'] ?? null;
-                $author_name = $author ? htmlspecialchars($author['username']) : 'Неизвестно';
-                $author_initial = mb_strtoupper(mb_substr($author_name, 0, 1));
-                $status_map = ['open' => ['Открыта','success'], 'closed' => ['Закрыта','danger'], 'archived' => ['Архив','secondary']];
-                [$status_label, $status_color] = $status_map[$t['status']] ?? ['Открыта','success'];
-                $date = date('d.m.Y', strtotime($t['created_at']));
-                
+                <?php foreach ($topics as $t) : ?>
+                    <?php
+                    $post_count = $post_counts[$t['id']] ?? 0;
+                    $author = $user->getById($t['author_id']);
+                    $author_profile = $user->getProfile($t['author_id']);
+                    $author_avatar = $author_profile['avatar_url'] ?? $author['avatar_url'] ?? null;
+                    $author_name = $author ? htmlspecialchars($author['username']) : 'Неизвестно';
+                    $author_initial = mb_strtoupper(mb_substr($author_name, 0, 1));
+                    $status_map = ['open' => ['Открыта','success'], 'closed' => ['Закрыта','danger'], 'archived' => ['Архив','secondary']];
+                    [$status_label, $status_color] = $status_map[$t['status']] ?? ['Открыта','success'];
+                    $date = date('d.m.Y', strtotime($t['created_at']));
+
                 // Получить информацию о категории темы
-                $topicCategory = null;
-                if ($t['category_id']) {
-                    $topicCategory = $category->getById($t['category_id']);
-                }
-                ?>
+                    $topicCategory = null;
+                    if ($t['category_id']) {
+                        $topicCategory = $category->getById($t['category_id']);
+                    }
+                    ?>
                 <div class="card topic-card" onclick="window.location='topic.php?id=<?= $t['id'] ?>'">
                     <div class="card-body py-3 px-3">
                         <div class="d-flex align-items-start gap-3">
-                            <?php if ($author_avatar): ?>
+                            <?php if ($author_avatar) : ?>
                                 <img src="<?= htmlspecialchars($author_avatar) ?>?t=<?= time() ?>" alt="<?= $author_name ?>" class="avatar-sm mt-1" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
-                            <?php else: ?>
+                            <?php else : ?>
                                 <div class="avatar-sm mt-1"><?= $author_initial ?></div>
                             <?php endif; ?>
                             <div class="flex-grow-1 min-w-0">
@@ -475,15 +475,15 @@ body { background-color: #f0f2f5; }
                                         }
                                     }
                                     ?>
-                                    <?php if (!empty($t['is_pinned'])): ?>
+                                    <?php if (!empty($t['is_pinned'])) : ?>
                                         <span class="badge bg-warning text-dark" title="Закреплённая тема">Закреплено</span>
                                     <?php endif; ?>
-                                    <?php if ($topicCategory): ?>
+                                    <?php if ($topicCategory) : ?>
                                         <a href="index.php?category=<?= $topicCategory['id'] ?>" class="badge bg-info bg-opacity-10 text-info text-decoration-none">
                                             <i class="bi bi-folder me-1"></i><?= htmlspecialchars($topicCategory['name']) ?>
                                         </a>
                                     <?php endif; ?>
-                                    <?php if ($hidden_count > 0): ?>
+                                    <?php if ($hidden_count > 0) : ?>
                                         <span class="badge bg-danger" title="<?= $hidden_count ?> скрытых постов">
                                             <i class="bi bi-eye-slash"></i> <?= $hidden_count ?>
                                         </span>
@@ -494,7 +494,7 @@ body { background-color: #f0f2f5; }
                                     <span><i class="bi bi-person me-1"></i><a href="../home/profile.php?id=<?= $t['author_id'] ?>" class="text-decoration-none text-dark" onclick="event.stopPropagation()"><?= $author_name ?></a></span>
                                     <span><i class="bi bi-calendar3 me-1"></i><?= $date ?></span>
                                     <span><i class="bi bi-chat me-1"></i><?= $post_count ?> <?= $post_count === 1 ? 'пост' : ($post_count < 5 ? 'поста' : 'постов') ?></span>
-                                    <?php if (!$is_guest && $t['author_id'] !== $_SESSION['user_id']): ?>
+                                    <?php if (!$is_guest && $t['author_id'] !== $_SESSION['user_id']) : ?>
                                     <button type="button" class="btn btn-link btn-sm text-warning p-0" data-bs-toggle="modal" data-bs-target="#reportIndexTopicModal<?= $t['id'] ?>" onclick="event.stopPropagation()" title="Пожаловаться">
                                         <i class="bi bi-exclamation-circle me-1"></i>
                                     </button>
@@ -509,7 +509,7 @@ body { background-color: #f0f2f5; }
             </div>
 
             <!-- Пагинация -->
-            <?php if ($total_topics > 0 && !$selectedTag): ?>
+                <?php if ($total_topics > 0 && !$selectedTag) : ?>
             <nav aria-label="pagination" class="mt-4 d-flex align-items-center justify-content-between">
                 <div class="text-muted small">
                     Показано <?= (($page - 1) * $itemsPerPage) + 1 ?>–<?= min($page * $itemsPerPage, $total_topics) ?> из <?= $total_topics ?> тем
@@ -517,7 +517,7 @@ body { background-color: #f0f2f5; }
                 
                 <!-- Выбор количества элементов -->
                 <div class="btn-group btn-group-sm" role="group">
-                    <?php foreach ([20, 50, 100] as $count): ?>
+                    <?php foreach ([20, 50, 100] as $count) : ?>
                         <a href="?page=1&per_page=<?= $count ?><?= $selectedCategory ? '&category=' . $selectedCategory : '' ?><?= $selectedTag ? '&tag=' . urlencode($selectedTag) : '' ?>" 
                            class="btn <?= $itemsPerPage === $count ? 'btn-primary' : 'btn-outline-secondary' ?>">
                             <?= $count ?>
@@ -527,7 +527,7 @@ body { background-color: #f0f2f5; }
             </nav>
 
             <!-- Пагинация (навигация) -->
-            <?php if ($totalPages > 1): ?>
+                    <?php if ($totalPages > 1) : ?>
             <nav aria-label="Page navigation" class="mt-3">
                 <ul class="pagination pagination-sm justify-content-center">
                     <!-- Кнопка "Предыдущая" -->
@@ -543,35 +543,35 @@ body { background-color: #f0f2f5; }
                     </li>
 
                     <!-- Номера страниц -->
-                    <?php
-                    $startPage = max(1, $page - 2);
-                    $endPage = min($totalPages, $page + 2);
-                    
-                    if ($startPage > 1): ?>
+                        <?php
+                        $startPage = max(1, $page - 2);
+                        $endPage = min($totalPages, $page + 2);
+
+                        if ($startPage > 1) : ?>
                         <li class="page-item">
                             <a class="page-link" href="?page=1&per_page=<?= $itemsPerPage ?><?= $selectedCategory ? '&category=' . $selectedCategory : '' ?><?= $selectedTag ? '&tag=' . urlencode($selectedTag) : '' ?>">1</a>
                         </li>
-                        <?php if ($startPage > 2): ?>
+                            <?php if ($startPage > 2) : ?>
                             <li class="page-item disabled"><span class="page-link">...</span></li>
+                            <?php endif; ?>
                         <?php endif; ?>
-                    <?php endif; ?>
 
-                    <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
+                        <?php for ($i = $startPage; $i <= $endPage; $i++) : ?>
                         <li class="page-item <?= $i === $page ? 'active' : '' ?>">
                             <a class="page-link" href="?page=<?= $i ?>&per_page=<?= $itemsPerPage ?><?= $selectedCategory ? '&category=' . $selectedCategory : '' ?><?= $selectedTag ? '&tag=' . urlencode($selectedTag) : '' ?>">
                                 <?= $i ?>
                             </a>
                         </li>
-                    <?php endfor; ?>
+                        <?php endfor; ?>
 
-                    <?php if ($endPage < $totalPages): ?>
-                        <?php if ($endPage < $totalPages - 1): ?>
+                        <?php if ($endPage < $totalPages) : ?>
+                            <?php if ($endPage < $totalPages - 1) : ?>
                             <li class="page-item disabled"><span class="page-link">...</span></li>
-                        <?php endif; ?>
+                            <?php endif; ?>
                         <li class="page-item">
                             <a class="page-link" href="?page=<?= $totalPages ?>&per_page=<?= $itemsPerPage ?><?= $selectedCategory ? '&category=' . $selectedCategory : '' ?><?= $selectedTag ? '&tag=' . urlencode($selectedTag) : '' ?>"><?= $totalPages ?></a>
                         </li>
-                    <?php endif; ?>
+                        <?php endif; ?>
 
                     <!-- Кнопка "Следующая" -->
                     <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
@@ -586,8 +586,8 @@ body { background-color: #f0f2f5; }
                     </li>
                 </ul>
             </nav>
-            <?php endif; ?>
-            <?php endif; ?>
+                    <?php endif; ?>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
 
@@ -596,18 +596,18 @@ body { background-color: #f0f2f5; }
                 <div class="card-body">
                     <div class="section-title mb-3">Мой профиль</div>
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <?php if (!$is_guest && $currentUserAvatar): ?>
+                        <?php if (!$is_guest && $currentUserAvatar) : ?>
                             <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-                        <?php else: ?>
+                        <?php else : ?>
                             <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;font-weight:700;flex-shrink:0;">
                                 <?= mb_strtoupper(mb_substr($username, 0, 1)) ?>
                             </div>
                         <?php endif; ?>
                         <div>
                             <div class="fw-bold"><?= $username ?></div>
-                    <?php if ($is_guest): ?>
+                    <?php if ($is_guest) : ?>
                     <span class="badge bg-secondary">Гость</span>
-                    <?php else:
+                    <?php else :
                         $sidebarRoleLabel = 'Участник';
                         $sidebarBadgeClass = 'bg-success bg-opacity-10 text-success';
                         if ($userRole === 'moderator') {
@@ -617,16 +617,16 @@ body { background-color: #f0f2f5; }
                             $sidebarRoleLabel = 'Админ';
                             $sidebarBadgeClass = 'bg-primary bg-opacity-10 text-primary';
                         }
-                    ?>
+                        ?>
                     <span class="badge <?= $sidebarBadgeClass ?>"><?= $sidebarRoleLabel ?></span>
                     <?php endif; ?>
                         </div>
                     </div>
-                    <?php if ($is_guest): ?>
+                    <?php if ($is_guest) : ?>
                     <a href="../auth/login.php" class="btn btn-create btn-primary w-100 btn-sm">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти в аккаунт
                     </a>
-                    <?php else: ?>
+                    <?php else : ?>
                     <a href="../auth/logout.php" class="btn btn-outline-danger w-100 btn-sm rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
                     </a>
@@ -634,7 +634,7 @@ body { background-color: #f0f2f5; }
                 </div>
             </div>
 
-            <?php if (!$is_guest): ?>
+            <?php if (!$is_guest) : ?>
             <div class="card border-0 rounded-3 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="section-title mb-3">Быстрые действия</div>
@@ -648,7 +648,7 @@ body { background-color: #f0f2f5; }
             <?php endif; ?>
 
             <!-- Все категории -->
-            <?php if (!empty($allCategories)): ?>
+            <?php if (!empty($allCategories)) : ?>
             <div class="card border-0 rounded-3 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="section-title mb-3">Категории</div>
@@ -656,7 +656,7 @@ body { background-color: #f0f2f5; }
                         <a href="index.php" class="list-group-item list-group-item-action border-0 ps-0 pe-0 <?= !$selectedCategory ? 'active' : '' ?>">
                             <i class="bi bi-grid-3x2-gap me-2"></i>Все темы
                         </a>
-                        <?php foreach ($allCategories as $cat): ?>
+                        <?php foreach ($allCategories as $cat) : ?>
                         <a href="index.php?category=<?= $cat['id'] ?>" class="list-group-item list-group-item-action border-0 ps-0 pe-0 <?= ($selectedCategory === (int)$cat['id']) ? 'active' : '' ?>">
                             <i class="bi bi-folder me-2"></i><?= htmlspecialchars($cat['name']) ?>
                         </a>
@@ -667,21 +667,21 @@ body { background-color: #f0f2f5; }
             <?php endif; ?>
 
             <!-- Недавние обсуждения -->
-            <?php if (!empty($recentDiscussions)): ?>
+            <?php if (!empty($recentDiscussions)) : ?>
             <div class="card border-0 rounded-3 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="section-title mb-3">
                         <i class="bi bi-fire me-1"></i>Недавние обсуждения
                     </div>
                     <div class="list-group list-group-flush">
-                        <?php foreach ($recentDiscussions as $t): ?>
+                        <?php foreach ($recentDiscussions as $t) : ?>
                         <a href="../topic.php?id=<?= $t['id'] ?>" class="list-group-item list-group-item-action border-0 ps-0 pe-0 py-2">
                             <small class="d-block text-truncate" style="max-width: 100%;">
                                 <?= htmlspecialchars($t['title']) ?>
                             </small>
                             <small class="text-muted">
                                 <i class="bi bi-chat-dots me-1"></i><?= $t['posts_count'] ?? 0 ?> постов
-                                <?php if ($t['last_post_date']): ?>
+                                <?php if ($t['last_post_date']) : ?>
                                     • <?= date('d.m', strtotime($t['last_post_date'])) ?>
                                 <?php endif; ?>
                             </small>
@@ -693,14 +693,14 @@ body { background-color: #f0f2f5; }
             <?php endif; ?>
 
             <!-- Популярные темы -->
-            <?php if (!empty($popularTopics)): ?>
+            <?php if (!empty($popularTopics)) : ?>
             <div class="card border-0 rounded-3 shadow-sm mb-3">
                 <div class="card-body">
                     <div class="section-title mb-3">
                         <i class="bi bi-star me-1"></i>Популярные темы
                     </div>
                     <div class="list-group list-group-flush">
-                        <?php foreach ($popularTopics as $t): ?>
+                        <?php foreach ($popularTopics as $t) : ?>
                         <a href="../topic.php?id=<?= $t['id'] ?>" class="list-group-item list-group-item-action border-0 ps-0 pe-0 py-2">
                             <small class="d-block text-truncate" style="max-width: 100%;">
                                 <?= htmlspecialchars($t['title']) ?>
@@ -717,13 +717,13 @@ body { background-color: #f0f2f5; }
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="card-body">
                     <div class="section-title mb-3">Популярные теги</div>
-                    <?php if (!empty($popularTags)): ?>
+                    <?php if (!empty($popularTags)) : ?>
                         <div class="d-flex flex-wrap gap-2">
-                            <?php foreach ($popularTags as $tag): ?>
+                            <?php foreach ($popularTags as $tag) : ?>
                                 <a href="index.php?tag=<?= urlencode($tag['name']) ?>" class="badge bg-secondary bg-opacity-15 text-dark">#<?= htmlspecialchars($tag['name']) ?></a>
                             <?php endforeach; ?>
                         </div>
-                    <?php else: ?>
+                    <?php else : ?>
                         <p class="mb-0 text-muted">Теги пока не добавлены.</p>
                     <?php endif; ?>
                 </div>
@@ -738,7 +738,7 @@ body { background-color: #f0f2f5; }
 <script src="/assets/filter.js"></script>
 
 <!-- Модальные окна жалоб на темы в списке -->
-<?php foreach ($topics as $t): ?>
+<?php foreach ($topics as $t) : ?>
 <div class="modal fade" id="reportIndexTopicModal<?= $t['id'] ?>" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

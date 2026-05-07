@@ -183,7 +183,7 @@ body { background-color: #f0f2f5; min-height: 100vh; }
         <div class="card auth-card">
             <div class="card-body p-4">
 
-                <?php if ($success): ?>
+                <?php if ($success) : ?>
                 <div class="text-center py-3">
                     <div class="mb-3">
                         <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center" style="width:64px;height:64px">
@@ -198,7 +198,7 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                     <p class="text-muted small mb-3">
                         Чтобы активировать аккаунт, подтвердите email по ссылке в письме.
                     </p>
-                    <?php if ($confirmationLink): ?>
+                    <?php if ($confirmationLink) : ?>
                     <div class="alert alert-secondary small">
                         <strong>Тестовая ссылка:</strong><br>
                         <a href="<?= htmlspecialchars($confirmationLink) ?>"><?= htmlspecialchars($confirmationLink) ?></a>
@@ -207,21 +207,20 @@ body { background-color: #f0f2f5; min-height: 100vh; }
                     <a href="login.php" class="btn btn-primary-custom btn-primary w-100">Войти в аккаунт →</a>
                 </div>
 
-                <?php else: ?>
-
+                <?php else : ?>
                 <h4 class="fw-bold mb-1">Создать аккаунт</h4>
                 <p class="text-muted small mb-4">Присоединяйтесь к сообществу</p>
 
-                <?php if (!empty($errors)): ?>
+                    <?php if (!empty($errors)) : ?>
                 <div class="alert alert-danger d-flex align-items-start gap-2 py-2">
                     <i class="bi bi-exclamation-triangle mt-1 flex-shrink-0"></i>
                     <ul class="mb-0 ps-0" style="list-style:none">
-                        <?php foreach ($errors as $err): ?>
+                        <?php foreach ($errors as $err) : ?>
                         <li><?= htmlspecialchars($err) ?></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
-                <?php endif; ?>
+                    <?php endif; ?>
 
                 <form method="POST" novalidate>
                     <div class="mb-3">

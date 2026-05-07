@@ -88,9 +88,9 @@ body { background-color: #f0f2f5; }
                 </li>
             </ul>
             <div class="d-flex align-items-center gap-2">
-                <?php if ($currentUserAvatar): ?>
+                <?php if ($currentUserAvatar) : ?>
                     <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" class="avatar-sm" style="object-fit:cover;">
-                <?php else: ?>
+                <?php else : ?>
                     <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                 <?php endif; ?>
                 <span class="fw-semibold small"><?= $username ?></span>
@@ -109,7 +109,7 @@ body { background-color: #f0f2f5; }
                 <i class="bi bi-chat-dots me-1"></i>Мои ответы (<?= $total_posts ?>)
             </div>
 
-            <?php if (empty($user_posts)): ?>
+            <?php if (empty($user_posts)) : ?>
             <div class="card border-0 rounded-3 shadow-sm">
                 <div class="empty-state">
                     <i class="bi bi-chat-dots display-4 d-block mb-3"></i>
@@ -119,16 +119,16 @@ body { background-color: #f0f2f5; }
                     <a href="index.php" class="btn btn-primary mt-3">Найти темы для обсуждения</a>
                 </div>
             </div>
-            <?php else: ?>
+            <?php else : ?>
             <div class="d-flex flex-column gap-3">
-                <?php foreach ($user_posts as $p): ?>
-                <?php
-                $date = date('d.m.Y H:i', strtotime($p['created_at']));
-                $topicTitle = htmlspecialchars($p['topic_title'] ?? 'Неизвестная тема');
-                $topicLink = "topic.php?id=" . $p['topic_id'];
-                $excerpt = strip_tags($p['content'] ?? '');
-                $excerpt = substr($excerpt, 0, 150);
-                ?>
+                <?php foreach ($user_posts as $p) : ?>
+                    <?php
+                    $date = date('d.m.Y H:i', strtotime($p['created_at']));
+                    $topicTitle = htmlspecialchars($p['topic_title'] ?? 'Неизвестная тема');
+                    $topicLink = "topic.php?id=" . $p['topic_id'];
+                    $excerpt = strip_tags($p['content'] ?? '');
+                    $excerpt = substr($excerpt, 0, 150);
+                    ?>
                 <div class="card post-card">
                     <div class="card-body p-3">
                         <div class="mb-2">
@@ -149,13 +149,13 @@ body { background-color: #f0f2f5; }
             </div>
 
             <!-- Пагинация -->
-            <?php if ($totalPages > 1): ?>
+                <?php if ($totalPages > 1) : ?>
             <nav aria-label="Page navigation" class="mt-4">
                 <ul class="pagination pagination-sm justify-content-center">
                     <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
                         <a class="page-link" href="?page=<?= $page - 1 ?>"><i class="bi bi-chevron-left"></i></a>
                     </li>
-                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                    <?php for ($i = 1; $i <= $totalPages; $i++) : ?>
                         <li class="page-item <?= $i === $page ? 'active' : '' ?>">
                             <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
                         </li>
@@ -165,7 +165,7 @@ body { background-color: #f0f2f5; }
                     </li>
                 </ul>
             </nav>
-            <?php endif; ?>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
 
@@ -174,9 +174,9 @@ body { background-color: #f0f2f5; }
                 <div class="card-body">
                     <div class="section-title mb-3">Мой профиль</div>
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <?php if ($currentUserAvatar): ?>
+                        <?php if ($currentUserAvatar) : ?>
                             <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" style="width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-                        <?php else: ?>
+                        <?php else : ?>
                             <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.2rem;font-weight:700;flex-shrink:0;">
                                 <?= mb_strtoupper(mb_substr($username, 0, 1)) ?>
                             </div>

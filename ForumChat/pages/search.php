@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Страница глобального поиска по форуму
  * Доступна для всех пользователей (авторизованных и анонимных)
  */
+
 require_once __DIR__ . '/../auth/auth_check.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../classes/SearchHistory.php';

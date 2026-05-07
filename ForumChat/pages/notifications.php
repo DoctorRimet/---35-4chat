@@ -27,13 +27,13 @@ $currentUserAvatar = '';
 if (!$is_guest && isset($_SESSION['user_id'])) {
     $currentUserData = $userClass->getById($_SESSION['user_id']);
     $currentUserProfile = $userClass->getProfile($_SESSION['user_id']);
-    
+
     // Ensure profile exists
     if (!$currentUserProfile) {
         $userClass->updateProfile($_SESSION['user_id'], null, null, null, null);
         $currentUserProfile = $userClass->getProfile($_SESSION['user_id']);
     }
-    
+
     $currentUserAvatar = $currentUserProfile['avatar_url'] ?? $currentUserData['avatar_url'] ?? '';
 }
 
@@ -95,7 +95,7 @@ if ($filter === 'unread') {
     $countStmt->execute();
     $result = $countStmt->fetch(PDO::FETCH_ASSOC);
     $total_count = $result['count'] ?? 0;
-    
+
     $sql = "SELECT id, user_id, type, message, read_status, created_at FROM notifications 
             WHERE user_id = :user_id AND read_status = 1 
             ORDER BY created_at DESC LIMIT :limit OFFSET :offset";
@@ -219,11 +219,11 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                         <i class="bi bi-house me-1"></i>Главная
                     </a>
                 </li>
-                <?php if (!$is_guest): ?>
+                <?php if (!$is_guest) : ?>
                 <li class="nav-item">
                     <a class="nav-link active fw-semibold" href="notifications.php">
                         <i class="bi bi-bell me-1"></i>Сообщения
-                        <?php if ($unread_count > 0): ?>
+                        <?php if ($unread_count > 0) : ?>
                             <span class="badge bg-danger ms-1"><?php echo $unread_count; ?></span>
                         <?php endif; ?>
                     </a>
@@ -238,29 +238,29 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                         <i class="bi bi-plus-circle me-1"></i>Создать тему
                     </a>
                 </li>
-                <?php if (in_array($userRole, ['admin', 'moderator'])): ?>
+                    <?php if (in_array($userRole, ['admin', 'moderator'])) : ?>
                 <li class="nav-item">
                     <a class="nav-link text-primary fw-semibold" href="admin_panel.php">
                         <i class="bi bi-shield-check me-1"></i>Модерация
                     </a>
                 </li>
-                <?php endif; ?>
+                    <?php endif; ?>
                 <?php endif; ?>
             </ul>
 
             <div class="d-flex align-items-center gap-2">
-                <?php if (!$is_guest && $currentUserAvatar): ?>
+                <?php if (!$is_guest && $currentUserAvatar) : ?>
                     <img src="<?= htmlspecialchars($currentUserAvatar) ?>?t=<?= time() ?>" alt="<?= $username ?>" class="avatar-sm" style="object-fit:cover;">
-                <?php else: ?>
+                <?php else : ?>
                     <div class="avatar-sm"><?= mb_strtoupper(mb_substr($username, 0, 1)) ?></div>
                 <?php endif; ?>
                 <span class="fw-semibold small"><?= $username ?></span>
-                <?php if ($is_guest): ?>
+                <?php if ($is_guest) : ?>
                     <span class="badge bg-secondary">Гость</span>
                     <a href="../auth/login.php" class="btn btn-sm btn-outline-primary rounded-3">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Войти
                     </a>
-                <?php else:
+                <?php else :
                     $roleLabel = 'Участник';
                     $badgeClass = 'bg-success bg-opacity-10 text-success';
                     if ($userRole === 'moderator') {
@@ -270,7 +270,7 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                         $roleLabel = 'Админ';
                         $badgeClass = 'bg-primary bg-opacity-10 text-primary';
                     }
-                ?>
+                    ?>
                     <span class="badge <?= $badgeClass ?>"><?= $roleLabel ?></span>
                     <a href="../auth/logout.php" class="btn btn-sm btn-outline-danger rounded-3">
                         <i class="bi bi-box-arrow-right me-1"></i>Выйти
@@ -301,7 +301,7 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                         </a>
                     </div>
                     
-                    <?php if ($unread_count > 0): ?>
+                    <?php if ($unread_count > 0) : ?>
                         <div class="card-body">
                             <form method="GET" action="notifications.php">
                                 <input type="hidden" name="action" value="mark_all_read">
@@ -328,16 +328,16 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                     </div>
                     <div class="card-body">
                         <?php $stats = $notificationManager->getStats($user_id); ?>
-                        <?php if (!empty($stats)): ?>
+                        <?php if (!empty($stats)) : ?>
                             <div class="small">
-                                <?php foreach ($stats as $stat): ?>
+                                <?php foreach ($stats as $stat) : ?>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span><?php echo ucfirst(str_replace('_', ' ', $stat['type'])); ?>:</span>
                                         <strong><?php echo $stat['count']; ?></strong>
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-                        <?php else: ?>
+                        <?php else : ?>
                             <small class="text-muted">Нет данных</small>
                         <?php endif; ?>
                     </div>
@@ -348,28 +348,28 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <?php if ($filter === 'unread'): ?>
+                            <?php if ($filter === 'unread') : ?>
                                 Непрочитанные уведомления
-                            <?php else: ?>
+                            <?php else : ?>
                                 Все уведомления
                             <?php endif; ?>
                         </h5>
                     </div>
                     
                     <div class="card-body">
-                        <?php if (empty($notifications)): ?>
+                        <?php if (empty($notifications)) : ?>
                             <div class="empty-state">
                                 <i class="bi bi-inbox text-secondary" style="font-size: 3rem;"></i>
                                 <p>
-                                    <?php if ($filter === 'unread'): ?>
+                                    <?php if ($filter === 'unread') : ?>
                                         У вас нет непрочитанных уведомлений
-                                    <?php else: ?>
+                                    <?php else : ?>
                                         У вас нет уведомлений
                                     <?php endif; ?>
                                 </p>
                             </div>
-                        <?php else: ?>
-                            <?php foreach ($notifications as $notification): ?>
+                        <?php else : ?>
+                            <?php foreach ($notifications as $notification) : ?>
                                 <div class="notification-item <?php echo $notification['read_status'] ? 'read' : 'unread'; ?> p-3 mb-2 rounded">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="flex-grow-1">
@@ -386,7 +386,7 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                                         </div>
                                         
                                         <div class="notification-actions">
-                                            <?php if (!$notification['read_status']): ?>
+                                            <?php if (!$notification['read_status']) : ?>
                                                 <button class="btn btn-sm btn-link" 
                                                         onclick="markAsRead(<?php echo $notification['id']; ?>)"
                                                         title="Отметить как прочитанное">
@@ -406,10 +406,10 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                         <?php endif; ?>
                     </div>
                     
-                    <?php if ($total_pages > 1): ?>
+                    <?php if ($total_pages > 1) : ?>
                         <nav aria-label="Page navigation" class="card-footer">
                             <ul class="pagination mb-0">
-                                <?php if ($page > 1): ?>
+                                <?php if ($page > 1) : ?>
                                     <li class="page-item">
                                         <a class="page-link" href="notifications.php?page=1&filter=<?php echo $filter; ?>">Первая</a>
                                     </li>
@@ -418,7 +418,7 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                                     </li>
                                 <?php endif; ?>
                                 
-                                <?php for ($i = max(1, $page - 2); $i <= min($total_pages, $page + 2); $i++): ?>
+                                <?php for ($i = max(1, $page - 2); $i <= min($total_pages, $page + 2); $i++) : ?>
                                     <li class="page-item <?php echo $i === $page ? 'active' : ''; ?>">
                                         <a class="page-link" href="notifications.php?page=<?php echo $i; ?>&filter=<?php echo $filter; ?>">
                                             <?php echo $i; ?>
@@ -426,7 +426,7 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
                                     </li>
                                 <?php endfor; ?>
                                 
-                                <?php if ($page < $total_pages): ?>
+                                <?php if ($page < $total_pages) : ?>
                                     <li class="page-item">
                                         <a class="page-link" href="notifications.php?page=<?php echo $page + 1; ?>&filter=<?php echo $filter; ?>">Далее</a>
                                     </li>
@@ -483,7 +483,8 @@ $unread_count = $notificationManager->getUnreadCount($user_id);
 
 <?php
 // Вспомогательные функции
-function getIconHtml($type) {
+function getIconHtml($type)
+{
     $icons = [
         'new_reply' => '<i class="bi bi-reply text-info"></i>',
         'mention' => '<i class="bi bi-at text-warning"></i>',
@@ -497,11 +498,12 @@ function getIconHtml($type) {
         'unban' => '<i class="bi bi-check-circle text-success"></i>',
         'system' => '<i class="bi bi-info-circle text-secondary"></i>'
     ];
-    
+
     return $icons[$type] ?? '<i class="bi bi-bell text-primary"></i>';
 }
 
-function getTypeLabel($type) {
+function getTypeLabel($type)
+{
     $labels = [
         'new_reply' => 'Новый ответ',
         'mention' => 'Упоминание',
@@ -515,15 +517,16 @@ function getTypeLabel($type) {
         'unban' => 'Разблокировка аккаунта',
         'system' => 'Системное уведомление'
     ];
-    
+
     return $labels[$type] ?? ucfirst($type);
 }
 
-function getTimeAgo($datetime) {
+function getTimeAgo($datetime)
+{
     $now = new DateTime();
     $date = new DateTime($datetime);
     $interval = $now->diff($date);
-    
+
     if ($interval->d > 0) {
         return $interval->d . ' дн. назад';
     } elseif ($interval->h > 0) {

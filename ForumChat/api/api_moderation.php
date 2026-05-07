@@ -1,4 +1,5 @@
 <?php
+
 /**
  * API для работы с модерацией
  * Используется для AJAX запросов
@@ -10,7 +11,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 
 // Обработчики ошибок для правильного вывода JSON при ошибках
-set_error_handler(function($errno, $errstr, $errfile, $errline) {
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     ob_end_clean();
     header('Content-Type: application/json; charset=utf-8', true);
     http_response_code(500);
@@ -18,7 +19,7 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
     exit;
 });
 
-set_exception_handler(function($e) {
+set_exception_handler(function ($e) {
     ob_end_clean();
     header('Content-Type: application/json; charset=utf-8', true);
     http_response_code(500);
@@ -79,16 +80,16 @@ switch ($action) {
             echo json_encode($response);
             exit;
         }
-        
+
         $post_id = $_POST['post_id'] ?? 0;
         $reason = $_POST['reason'] ?? 'Скрыто администратором';
-        
+
         if ($PostModeration->hidePost($post_id, $reason, $user_id)) {
             // Получить автора поста и отправить уведомление
             $postStmt = $conn->prepare("SELECT author_id FROM posts WHERE id = :post_id");
             $postStmt->execute([':post_id' => $post_id]);
             $post = $postStmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($post && $post['author_id'] != $user_id) {
                 // Отправить уведомление автору поста
                 $notificationManager = new NotificationManager($conn);
@@ -98,7 +99,7 @@ switch ($action) {
                     'Ваш пост был скрыт модератором. Причина: ' . $reason
                 );
             }
-            
+
             $response = ['success' => true, 'message' => 'Пост скрыт'];
             if (!headers_sent()) {
                 header('Content-Type: application/json');
@@ -131,9 +132,9 @@ switch ($action) {
             echo json_encode($response);
             exit;
         }
-        
+
         $post_id = $_POST['post_id'] ?? 0;
-        
+
         if ($PostModeration->unhidePost($post_id)) {
             $response = ['success' => true, 'message' => 'Пост восстановлен'];
             if (!headers_sent()) {
@@ -155,11 +156,11 @@ switch ($action) {
             echo json_encode($response);
             exit;
         }
-        
+
         $post_id = $_POST['post_id'] ?? 0;
         $hours = intval($_POST['hours'] ?? 0);
         $reason = $_POST['reason'] ?? 'Отмечено на удаление';
-        
+
         // Если часов не указано или чекбокс не отмечен - просто отметить без удаления
         $scheduled_delete_str = null;
         if ($hours > 0) {
@@ -167,7 +168,7 @@ switch ($action) {
             $scheduled_delete->add(new DateInterval('PT' . $hours . 'H'));
             $scheduled_delete_str = $scheduled_delete->format('Y-m-d H:i:s');
         }
-        
+
         if ($PostModeration->markForDeletion($post_id, $user_id, $reason, false, $scheduled_delete_str)) {
             $response = ['success' => true, 'message' => 'Пост отмечен на удаление'];
             header('Content-Type: application/json');
@@ -199,9 +200,9 @@ switch ($action) {
             echo json_encode($response);
             exit;
         }
-        
+
         $post_id = $_POST['post_id'] ?? 0;
-        
+
         if ($PostModeration->deletePost($post_id, $user_id)) {
             $response = ['success' => true, 'message' => 'Пост удалён'];
             if (!headers_sent()) {
@@ -228,19 +229,19 @@ switch ($action) {
             echo json_encode($response);
             exit;
         }
-        
+
         $post_id = $_POST['post_id'] ?? 0;
-        
+
         // Получить тему поста для перенаправления
         $topicStmt = $conn->prepare("SELECT topic_id FROM posts WHERE id = :post_id");
         $topicStmt->execute([':post_id' => $post_id]);
         $post = $topicStmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if ($PostModeration->deletePost($post_id, $user_id)) {
             $response = ['success' => true, 'message' => 'Пост удалён сразу'];
             header('Content-Type: application/json');
             echo json_encode($response);
-            
+
             // Перенаправление происходит на фронте после успешного ответа
             if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) && $post) {
                 header('Location: topic.php?id=' . $post['topic_id']);

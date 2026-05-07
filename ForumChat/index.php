@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/auth/auth_check.php';
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/classes/Topic.php';
@@ -51,17 +52,14 @@ $currentUserAvatar = '';
 if (!$is_guest && isset($_SESSION['user_id'])) {
     $currentUserData = $user->getById($_SESSION['user_id']);
     $currentUserProfile = $user->getProfile($_SESSION['user_id']);
-    
+
     // Ensure profile exists
     if (!$currentUserProfile) {
         $user->updateProfile($_SESSION['user_id'], null, null, null, null);
         $currentUserProfile = $user->getProfile($_SESSION['user_id']);
     }
-    
+
     $currentUserAvatar = $currentUserProfile['avatar_url'] ?? $currentUserData['avatar_url'] ?? '';
 }
 // Подключаем остальное содержимое из pages/index.php
 require_once __DIR__ . '/pages/index.php';
-
-
-
