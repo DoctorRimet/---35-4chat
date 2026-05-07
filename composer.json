@@ -1,4 +1,3 @@
-cat > composer.json << 'EOF'
 {
     "name": "student/my-project",
     "description": "My project for PR35",
@@ -21,4 +20,3 @@ cat > composer.json << 'EOF'
         }
     }
 }
-EOF
