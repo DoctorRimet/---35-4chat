@@ -35,6 +35,4 @@ jobs:
           tools: phpcs
 
       - name: Run PHPCS
-   run: phpcs --standard=PSR12 --extensions=php --ignore=vendor/ .
-severity= 0
-
+        run: phpcs --standard=PSR12 --extensions=php --ignore=vendor/ . --warning-severity=0
