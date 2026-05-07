@@ -136,7 +136,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_POST['comment_text'], $_PO
                                 }
                             }
                         } elseif (isset($_FILES['comment_file']) && $_FILES['comment_file']['error'] !== UPLOAD_ERR_NO_FILE) {
-                        elseif (isset($_FILES['comment_file']) && $_FILES['comment_file']['error'] !== UPLOAD_ERR_NO_FILE) {
                             if (isset($_GET['debug'])) {
                                 error_log("DEBUG: Uploading file for comment ID: " . $commentModel->id);
                                 error_log("DEBUG: File array: " . json_encode($_FILES['comment_file']));
