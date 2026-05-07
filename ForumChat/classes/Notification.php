@@ -1,5 +1,7 @@
 <?php
 
+namespace ForumChat;
+
 class Notification
 {
     private $conn;
