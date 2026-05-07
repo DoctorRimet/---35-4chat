@@ -1,0 +1,121 @@
+' ==================================================================================
+' ДИАГРАММА ПОСЛЕДОВАТЕЛЬНОСТИ — POST /pages/create.php
+' ==================================================================================
+
+@startuml ForumChat_SequenceDiagram
+!theme plain
+title Диаграмма последовательности: Обработка POST /pages/create.php (Создание темы)
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontName Arial
+skinparam defaultFontSize 9
+skinparam sequenceArrowColor #000000
+skinparam lifelineBorderColor #000000
+skinparam participantBackgroundColor #E3F2FD
+
+' ==================== УЧАСТНИКИ ====================
+actor User as user
+participant "Browser\n(Клиент)" as browser
+participant "create.php\n(Обработчик)" as handler
+participant "auth_check.php\n(Проверка сессии)" as auth
+participant "User\n(Класс)" as userClass
+participant "Database\n(MySQL)" as db
+participant "Topic\n(Класс)" as topicClass
+participant "Post\n(Класс)" as postClass
+participant "AutoModerator\n(Класс)" as autoMod
+participant "ForbiddenWords\n(Класс)" as forbiddenWords
+participant "PostModeration\n(Класс)" as postMod
+participant "NotificationManager\n(Класс)" as notifMgr
+
+' ==================== СЦЕНАРИЙ ====================
+
+user -> browser: Заполняет форму создания темы\n(title, description, category)
+browser -> handler: POST /pages/create.php\n(title, description, category_id, action=publish)
+
+handler -> auth: require_once auth_check.php
+auth -> auth: Проверка isset($_SESSION['user_id'])
+alt Сессия не найдена
+    auth -> handler: header(Location: /auth/login.php)
+    handler -> browser: Redirect 302
+    user <- browser: Переход на страницу входа
+else Сессия валидна
+    auth -> handler: continue (user_id в $_SESSION)
+end
+
+handler -> handler: Получить user_id из $_SESSION
+
+handler -> userClass: $currentUser = User::getById($user_id)
+userClass -> db: SELECT * FROM users WHERE id = ?
+db -> userClass: (username, user_role, status, ban_until, ...)
+userClass -> handler: $currentUser объект
+
+handler -> userClass: $isBanned = User::isBanned($currentUser)
+alt Пользователь заблокирован
+    handler -> handler: $errors[] = 'Ваш аккаунт заблокирован'
+    handler -> browser: Показать форму с ошибкой
+    user <- browser: Сообщение об ошибке блокировки
+else Не заблокирован
+    handler -> handler: continue
+end
+
+handler -> handler: Валидация данных:\n- title !== empty\n- strlen(title) <= 255\n- strlen(description) >= 10\n- strlen(description) <= 10000\n- category_id существует
+
+alt Ошибки валидации
+    handler -> browser: echo errors[]\necho form
+    user <- browser: Показать форму с ошибками
+else Валидация прошла
+    handler -> topicClass: $topic = new Topic()
+    topicClass -> topicClass: title, description, category_id,\nauthor_id = $user_id, status = 'open'
+    
+    handler -> topicClass: Topic::create()
+    topicClass -> db: INSERT INTO topics\n(title, description, author_id, category_id, status)\nVALUES (?, ?, ?, ?, 'open')
+    db -> topicClass: lastInsertId() = $topic_id
+    topicClass -> handler: $topic_id (успешно создано)
+    
+    handler -> postClass: $post = new Post()
+    postClass -> postClass: topic_id = $topic_id,\nauthor_id = $user_id,\ncontent = description,\nstatus = 'published'
+    
+    handler -> postClass: Post::create()
+    postClass -> db: INSERT INTO posts\n(topic_id, author_id, content, status)\nVALUES (?, ?, ?, 'published')
+    db -> postClass: lastInsertId() = $post_id
+    postClass -> handler: $post_id (пост создан)
+    
+    handler -> autoMod: AutoModerator::checkPostOnCreate(\n$post_id, $description, $user_id)
+    
+    autoMod -> forbiddenWords: ForbiddenWords::checkContentDetailed($content)
+    forbiddenWords -> db: SELECT word FROM forbidden_words
+    db -> forbiddenWords: [спам, реклама, продам, услуга]
+    forbiddenWords -> forbiddenWords: Проверка контента на совпадение
+    
+    alt Найдены запрещённые слова
+        forbiddenWords -> autoMod: has_forbidden = true\nwords_found = [word1, word2]
+        autoMod -> postMod: PostModeration::hidePost($post_id, reason)
+        postMod -> db: UPDATE posts SET hidden=1, hidden_reason=?\nWHERE id=?
+        db -> postMod: success
+        postMod -> autoMod: return true
+        
+        autoMod -> db: INSERT INTO post_deletion_marks\n(post_id, marked_by, reason, hidden)\nVALUES (?, 1, ?, 1)
+        db -> autoMod: success
+        
+        autoMod -> notifMgr: NotificationManager::createNotification($user_id,\n'post_auto_hidden', reason_message)
+        notifMgr -> db: INSERT INTO notifications\n(user_id, message, type)\nVALUES (?, ?, 'post_auto_hidden')
+        db -> notifMgr: success
+        
+        autoMod -> handler: return ['hidden' => true, 'violations' => [...]]
+        
+        handler -> browser: json_encode(['success' => true,\n'message' => 'Тема создана,\nно контент скрыт'])\necho json
+        user <- browser: Сообщение о скрытии контента
+    else Запрещённых слов не найдено
+        forbiddenWords -> autoMod: has_forbidden = false
+        autoMod -> handler: return ['hidden' => false]
+        
+        handler -> topicClass: Topic::saveTagsForTopic($topic_id, $tags)
+        topicClass -> db: INSERT INTO topic_tags (topic_id, tag_id)\nfor each tag
+        db -> topicClass: success
+        
+        handler -> browser: json_encode(['success' => true,\n'message' => 'Тема успешно создана',\n'topic_id' => $topic_id])
+        user <- browser: Редирект на /pages/topic.php?id=$topic_id
+    end
+end
+
+@enduml

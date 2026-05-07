@@ -1,0 +1,400 @@
+/**
+ * ForumChat Global Search Styles
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    color: #007bff;
+}
+
+/* Форма поиска */
+.search-container {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.search-box {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#search-input {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 14px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+#search-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+#search-input::placeholder {
+    color: #999;
+}
+
+.search-btn {
+    padding: 12px 24px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background 0.3s ease;
+    white-space: nowrap;
+    font-family: inherit;
+}
+
+.search-btn:hover {
+    background: #0056b3;
+}
+
+.search-btn:active {
+    transform: scale(0.98);
+}
+
+.search-help {
+    display: block;
+    margin-top: 12px;
+    color: #666;
+    font-size: 13px;
+}
+
+/* Результаты поиска */
+.search-results-area {
+    margin-top: 20px;
+}
+
+.search-results-container {
+    margin-top: 20px;
+}
+
+.search-info {
+    padding: 12px 16px;
+    background: #e7f3ff;
+    border-left: 4px solid #007bff;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    color: #004085;
+    font-size: 14px;
+}
+
+.search-result {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.search-result:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.result-type-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #007bff;
+    color: white;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-type-badge.topic {
+    background: #28a745;
+}
+
+.result-title {
+    margin: 10px 0 5px 0;
+    font-size: 18px;
+    line-height: 1.4;
+    color: #333;
+}
+
+.result-title a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.result-title a:hover {
+    text-decoration: underline;
+}
+
+.result-topic {
+    margin: 8px 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.result-topic a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.result-topic a:hover {
+    text-decoration: underline;
+}
+
+.result-excerpt {
+    margin: 12px 0;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #555;
+    max-height: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+/* Подсветка найденных слов */
+.search-highlight {
+    background: #ffeb3b;
+    font-weight: 600;
+    padding: 2px 4px;
+    border-radius: 2px;
+    color: #333;
+}
+
+.result-meta {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-top: 12px;
+    font-size: 12px;
+    color: #999;
+    flex-wrap: wrap;
+}
+
+.result-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: auto;
+    transition: color 0.3s ease;
+}
+
+.result-link:hover {
+    color: #0056b3;
+}
+
+/* Пагинация */
+.search-pagination {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 8px 12px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    min-width: 35px;
+}
+
+.page-btn:hover {
+    background: #e0e0e0;
+}
+
+.page-btn.active {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: 600;
+}
+
+/* Загрузка */
+.search-loading {
+    text-align: center;
+    padding: 40px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+.spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #007bff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.search-loading p {
+    margin-top: 15px;
+    color: #666;
+    font-size: 14px;
+}
+
+/* Сообщение */
+.search-message {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    color: #999;
+    font-size: 16px;
+}
+
+/* Справка */
+.info-box {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.info-content h5 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+}
+
+.info-content ul {
+    list-style: none;
+}
+
+.info-content li {
+    padding: 8px 0;
+    color: #555;
+    line-height: 1.6;
+}
+
+.info-content li:before {
+    content: "✓ ";
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .container {
+        padding: 12px;
+    }
+
+    .header h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .search-box {
+        flex-direction: column;
+    }
+
+    .search-btn {
+        width: 100%;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .result-meta {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .result-link {
+        margin-left: 0;
+    }
+
+    .search-result {
+        padding: 15px;
+    }
+
+    .result-title {
+        font-size: 16px;
+    }
+
+    .info-box {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    .header h1 {
+        font-size: 20px;
+    }
+
+    .search-container {
+        padding: 15px;
+    }
+
+    .result-excerpt {
+        max-height: 80px;
+        font-size: 13px;
+    }
+
+    .result-meta {
+        font-size: 11px;
+    }
+}
